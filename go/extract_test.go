@@ -123,6 +123,13 @@ func TestExtractTree_FqnFromGoMod(t *testing.T) {
 	}
 }
 
+func TestParseModulePath_StripsTrailingComment(t *testing.T) {
+	got := parseModulePath([]byte("module example.com/mylib // indirection\n\ngo 1.21\n"))
+	if want := "example.com/mylib"; got != want {
+		t.Errorf("module path = %q, want %q", got, want)
+	}
+}
+
 func TestParseMarkerArgs_QuotingAndCommas(t *testing.T) {
 	args := parseMarkerArgs("id=x,desc=`a, b, c`,expect=plain,note=\"d, e\"")
 	if args["desc"] != "a, b, c" { // commas inside backticks are literal

@@ -113,7 +113,9 @@ def case_from_raw(c: dict) -> Case:
     carries a corpus that ``CaseSet`` can't model) can still parse canonical cases directly,
     without round-tripping through a ``CaseSet``."""
     return Case(
-        id=c["id"],
+        # .get: a missing id must surface as validate()'s "case with empty id",
+        # not a KeyError deep in parsing
+        id=c.get("id", ""),
         input=c.get("input") or {},
         desc=c.get("desc", ""),
         facets=dict(c.get("facets") or {}),

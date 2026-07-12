@@ -106,3 +106,72 @@ def test_face_enum_shared_with_verdict():
     from spec_case.model import FACES
 
     assert set(FACES) == {"e2e", "eval", "perf", "trace"}
+
+
+def test_validate_empty_case_id():
+    raw = _raw()
+    raw["cases"].append({"id": "", "input": {}})
+    with pytest.raises(ValueError, match="case with empty id"):
+        C.validate(C.from_raw(raw))
+
+
+def test_missing_case_id_parses_then_fails_validate():
+    # a cases[] entry without `id` must reach validate()'s clear error, not KeyError
+    raw = _raw()
+    raw["cases"].append({"input": {}})
+    with pytest.raises(ValueError, match="case with empty id"):
+        C.validate(C.from_raw(raw))
+
+
+def test_validate_empty_source_name():
+    raw = _raw()
+    raw["sources"].append({"name": "", "content": "x"})
+    with pytest.raises(ValueError, match="source with empty name"):
+        C.validate(C.from_raw(raw))
+
+
+def test_validate_duplicate_source_name():
+    raw = _raw()
+    raw["sources"].append({"name": "doc1", "uri": "file://other"})
+    with pytest.raises(ValueError, match="duplicate source name"):
+        C.validate(C.from_raw(raw))
+
+
+def test_validate_source_neither_uri_nor_content():
+    raw = _raw()
+    raw["sources"] = [{"name": "bad"}]  # neither → same xor error as both
+    with pytest.raises(ValueError, match="exactly one"):
+        C.validate(C.from_raw(raw))
+
+
+def test_case_hash_drifts_on_facets_requires_judge():
+    base = C.case_hash(C.from_raw(_raw()).cases[0])
+    for field, value in [
+        ("facets", {"difficulty": "hard"}),
+        ("requires", []),
+        ("judge", {"eval": {"ground_truth": "Lyon"}}),
+    ]:
+        raw = _raw()
+        raw["cases"][0][field] = value
+        assert C.case_hash(C.from_raw(raw).cases[0]) != base, field
+
+
+def test_case_hash_ignores_nested_key_order():
+    # json.dumps(sort_keys=True) sorts recursively: judge criteria with the same
+    # content in a different insertion order must hash identically
+    a, b = _raw(), _raw()
+    a["cases"][0]["judge"] = {"eval": {"a": 1, "b": 2}}
+    b["cases"][0]["judge"] = {"eval": {"b": 2, "a": 1}}
+    assert C.case_hash(C.from_raw(a).cases[0]) == C.case_hash(C.from_raw(b).cases[0])
+
+
+def test_source_key_uri_addressed():
+    a = C.Source(name="x", uri="s3://bucket/doc")
+    b = C.Source(name="y", uri="s3://bucket/doc")  # same uri, different name
+    assert a.key() == b.key()
+    assert C.Source(name="z", uri="s3://bucket/other").key() != a.key()
+
+
+def test_facet_empty_values_rejected():
+    with pytest.raises(ValueError, match="non-empty"):
+        C.from_raw(_raw(facets={"difficulty": {"values": []}}))

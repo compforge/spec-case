@@ -273,7 +273,13 @@ func findGoMod(startDir string, memo map[string]goMod) goMod {
 func parseModulePath(b []byte) string {
 	for _, line := range strings.Split(string(b), "\n") {
 		if line = strings.TrimSpace(line); strings.HasPrefix(line, "module ") {
-			return strings.TrimSpace(line[len("module "):])
+			path := strings.TrimSpace(line[len("module "):])
+			// strip a trailing `// comment` — left in, it corrupts every fqn
+			// derived from the module path
+			if i := strings.Index(path, "//"); i >= 0 {
+				path = strings.TrimSpace(path[:i])
+			}
+			return path
 		}
 	}
 	return ""

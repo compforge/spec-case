@@ -26,8 +26,10 @@ class FacetSpec(BaseModel):
 
     @model_validator(mode="after")
     def _check(self) -> FacetSpec:
-        if self.values is None and not self.open:
-            raise ValueError("facet must declare `values` or be `open: true`")
+        # `not self.values` (not just None): an empty list would reject EVERY value
+        # in validate_dimensions — a facet nothing can satisfy is a declaration bug.
+        if not self.values and not self.open:
+            raise ValueError("facet must declare non-empty `values` or be `open: true`")
         if self.ordered and not self.values:
             raise ValueError("`ordered` requires `values`")
         return self

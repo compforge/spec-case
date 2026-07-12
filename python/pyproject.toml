@@ -1,6 +1,6 @@
 [project]
 name = "spec-case"
-version = "0.2.0"
+version = "0.1.1"
 description = "In-code spec/case/rule/link markers + specgen extractor that compiles them into spec.json (consumed by ccr), plus the canonical Case model (spec_case.model, [model] extra) shared by black-box runners."
 readme = "README.md"
 requires-python = ">=3.10"
