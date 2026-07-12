@@ -10,10 +10,18 @@
     "caseset": { "type": "string", "description": "CaseSet identifier (kebab-case)." },
     "focus": { "type": "string", "description": "One-line description of coverage." },
     "schema_version": { "type": "integer", "default": 1 },
-    "facet_schema": {
+    "facets": {
       "type": "object",
-      "description": "Declared vocabulary per facet axis; case.facets validated against it.",
-      "additionalProperties": { "type": "array", "items": { "type": "string" } }
+      "description": "Declared vocabulary per facet axis (key = the model's facets mapping); case.facets validated against it.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "values": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+          "ordered": { "type": "boolean", "default": false },
+          "open": { "type": "boolean", "default": false }
+        }
+      }
     },
     "sources": {
       "type": "array",

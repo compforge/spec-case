@@ -20,7 +20,7 @@ def _identity(fn: F) -> F:
 
 
 def spec(text: str) -> Callable[[F], F]:
-    """The function's contract preamble (0..1), shared by all its cases."""
+    """The symbol's (function / method / class) contract preamble (0..1), shared by all its cases."""
     return _identity
 
 

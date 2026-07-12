@@ -17,6 +17,12 @@ A review **unit** is the review-side twin of a `case`: same "requirement/contrac
 - `specs/` — normative specs in OpenSpec's `Requirement / Scenario` style; `specs/symbol-id/` is the core contract
 - `languages/` — per-language expression (`go.md` markers, `python.md` decorators) + examples
 - `schemas/` — `case.schema.json`, `spec-json.schema.json` (the generated artifact `ccr` ingests)
+- `python/` — the pip package: markers + `specgen` (dependency-free core), plus the **canonical Case model** (`spec_case.model` / `spec_case.facets`, install with the `[model]` extra) — the single `Case`/`CaseSet` type black-box runners such as [case-harness](https://github.com/qiankunli/case-harness) load, validate and hash
+
+```bash
+pip install spec-case          # markers + specgen only, zero deps
+pip install 'spec-case[model]' # + canonical Case model (pydantic, pyyaml)
+```
 
 ## Status
 
