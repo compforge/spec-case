@@ -1,9 +1,9 @@
 [project]
 name = "spec-case"
-version = "0.1.0"
-description = "In-code spec/case/rule/link markers + specgen extractor that compiles them into spec.json (consumed by ccr)."
+version = "0.2.0"
+description = "In-code spec/case/rule/link markers + specgen extractor that compiles them into spec.json (consumed by ccr), plus the canonical Case model (spec_case.model, [model] extra) shared by black-box runners."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = { text = "Apache-2.0" }
 authors = [{ name = "qiankunli" }]
 keywords = ["spec", "case", "code-review", "markers", "specgen", "ast"]
@@ -19,6 +19,19 @@ classifiers = [
 Homepage = "https://github.com/qiankunli/spec-case"
 Repository = "https://github.com/qiankunli/spec-case"
 Issues = "https://github.com/qiankunli/spec-case/issues"
+
+[project.optional-dependencies]
+# The canonical Case model (spec_case.model / spec_case.facets). Kept out of the core
+# deps so marker/specgen users stay dependency-free.
+model = [
+    "pydantic>=2.0,<3.0",
+    "pyyaml>=6.0,<7.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+]
 
 [project.scripts]
 specgen = "spec_case.specgen:cli"
