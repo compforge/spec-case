@@ -16,9 +16,9 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/qiankunli/spec-case"
-Repository = "https://github.com/qiankunli/spec-case"
-Issues = "https://github.com/qiankunli/spec-case/issues"
+Homepage = "https://github.com/compforge/spec-case"
+Repository = "https://github.com/compforge/spec-case"
+Issues = "https://github.com/compforge/spec-case/issues"
 
 [project.optional-dependencies]
 # The canonical Case model (spec_case.model / spec_case.facets). Kept out of the core

@@ -1,12 +1,62 @@
 package main
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
+	"reflect"
+	"runtime"
 	"sort"
 	"strings"
 	"testing"
 )
+
+type conformanceFixture struct {
+	Cases []struct {
+		Name   string `json:"name"`
+		Source struct {
+			Go string `json:"go"`
+		} `json:"source"`
+		Symbol struct {
+			Go string `json:"go"`
+		} `json:"symbol"`
+		Expected *Entry `json:"expected_entry"`
+	} `json:"cases"`
+}
+
+func TestSharedConformance(t *testing.T) {
+	_, currentFile, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("resolve conformance fixture: current test file is unknown")
+	}
+	path := filepath.Join(filepath.Dir(currentFile), "..", "..", "conformance", "specgen", "cases.json")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read conformance fixture %s: %v", path, err)
+	}
+	var fixture conformanceFixture
+	if err := json.Unmarshal(data, &fixture); err != nil {
+		t.Fatalf("parse conformance fixture %s: %v", path, err)
+	}
+
+	for _, tc := range fixture.Cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			entry, found := extractFile(tc.Source.Go, "fixture.go")[tc.Symbol.Go]
+			if tc.Expected == nil {
+				if found {
+					t.Fatalf("unexpected entry: %+v", entry)
+				}
+				return
+			}
+			if !found {
+				t.Fatal("expected entry is missing")
+			}
+			if !reflect.DeepEqual(entry, *tc.Expected) {
+				t.Fatalf("entry mismatch:\n got: %+v\nwant: %+v", entry, *tc.Expected)
+			}
+		})
+	}
+}
 
 func TestExtractMarkers(t *testing.T) {
 	src := "package p\n\n" +

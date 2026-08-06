@@ -1,3 +1,4 @@
+import json
 import sys
 from pathlib import Path
 
@@ -6,6 +7,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import spec_case  # noqa: E402
 from spec_case import specgen  # noqa: E402
+
+REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 
 SAMPLE = '''
 from spec_case import spec, case, link, rule
@@ -65,6 +68,18 @@ def test_extract_markers():
 
     # an unmarked function is absent
     assert "app/api.py::unmarked" not in out
+
+
+def test_shared_conformance():
+    fixture = json.loads(
+        (REPOSITORY_ROOT / "conformance/specgen/cases.json").read_text()
+    )
+
+    for case in fixture["cases"]:
+        out = specgen.extract_file(case["source"]["python"], "fixture.py")
+        assert out.get(case["symbol"]["python"]) == case["expected_entry"], case[
+            "name"
+        ]
 
 
 def test_fqn_from_module_prefix():

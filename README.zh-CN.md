@@ -4,19 +4,20 @@
 
 ## 这是什么
 
-**spec** 描述一个代码符号（函数）的意图/契约；**case** 是挂在该 spec 上的一条可复用激励 + 各判定面的判据。spec-case 独有的贡献是稳定的 **代码↔spec/case 绑定**——**symbol-id**——让同一份资产能：
+**spec** 描述代码符号的意图/契约；CaseSet 中的 **case** 是黑盒运行使用的可复用激励 + 各判定面判据，`spec.json` 则保存挂在符号上的精简白盒 checklist 投影。两类资产共享 spec-case 提供的稳定 **代码↔spec/case 绑定**——**symbol-id**，分别进入两条消费路径：
 
-- 被黑盒 harness **跑**（`case → verdict`），以及
-- 被 `ccr` **白盒挂**到改动的评审 **unit** 上（spec/case 作为函数级 checklist）。
+- 黑盒 harness **运行** CaseSet（`case → verdict`）。
+- `ccr` 把白盒投影**挂到**改动的评审 **unit** 上，作为函数级 checklist。
 
 评审 **unit** 是 `case` 的**评审侧孪生**：同一份"需求/契约"资产，两个消费者。
 
-## 布局（参考 OpenSpec）
+## 布局
 
 - `docs/` — `concepts.md`（理念）、`glossary.md`（术语）
-- `specs/` — OpenSpec 的 `Requirement / Scenario` 规范风格；`specs/symbol-id/` 是核心契约
-- `languages/` — 各语言表达（`go.md` marker、`python.md` decorator）+ 示例
-- `schemas/` — `case.schema.json`、`spec-json.schema.json`（`ccr` 吃的生成态产物）
+- `spec/` — schema、symbol-id 契约与各语言 marker grammar 的规范真源
+- `conformance/` — 所有语言工具链共同通过的行为 fixture
+- `toolchains/python/` — Python marker 包、`specgen` 与可选 canonical Case model
+- `toolchains/go/` — Go `specgen` 实现
 
 ## 状态
 

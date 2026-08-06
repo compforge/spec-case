@@ -1,0 +1,56 @@
+{
+  "cases": [
+    {
+      "name": "full_symbol_entry",
+      "source": {
+        "python": "class Service:\n    @spec(\"does useful work\")\n    @case(\"happy\", \"succeeds\", input=\"minimal\", expect=\"ok\", forbid=\"duplicate\")\n    @link(\"docs/design.md\")\n    @rule(\"preserve ordering\")\n    def run(self): ...\n",
+        "go": "package fixture\n\n// +spec=`does useful work`\n// +case:id=happy,desc=`succeeds`,input=`minimal`,expect=`ok`,forbid=`duplicate`\n// +link=docs/design.md\n// +rule=`preserve ordering`\nfunc (s *Service) Run() {}\n"
+      },
+      "symbol": {
+        "python": "fixture.py::Service.run",
+        "go": "fixture.go::Service.Run"
+      },
+      "expected_entry": {
+        "spec": "does useful work",
+        "cases": [
+          {
+            "id": "happy",
+            "desc": "succeeds",
+            "input": "minimal",
+            "expect": "ok",
+            "forbid": "duplicate"
+          }
+        ],
+        "links": ["docs/design.md"],
+        "rules": ["preserve ordering"]
+      }
+    },
+    {
+      "name": "spec_only_keeps_empty_cases",
+      "source": {
+        "python": "@spec(\"contract only\")\ndef run(): ...\n",
+        "go": "package fixture\n\n// +spec=`contract only`\nfunc Run() {}\n"
+      },
+      "symbol": {
+        "python": "fixture.py::run",
+        "go": "fixture.go::Run"
+      },
+      "expected_entry": {
+        "spec": "contract only",
+        "cases": []
+      }
+    },
+    {
+      "name": "invalid_case_id_is_rejected",
+      "source": {
+        "python": "@case(\"Bad-ID\", \"invalid\")\ndef run(): ...\n",
+        "go": "package fixture\n\n// +case:id=Bad-ID,desc=`invalid`\nfunc Run() {}\n"
+      },
+      "symbol": {
+        "python": "fixture.py::run",
+        "go": "fixture.go::Run"
+      },
+      "expected_entry": null
+    }
+  ]
+}

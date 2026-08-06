@@ -38,6 +38,19 @@ def test_from_raw_shape():
     C.validate(cs)  # the happy set passes
 
 
+def test_binding_round_trip():
+    raw = _raw()
+    raw["cases"][0]["binding"] = {
+        "symbol_id": "app/api.py::Service.run",
+        "spec": "preserve ordering",
+    }
+    case = C.from_raw(raw).cases[0]
+    assert case.binding == C.Binding(
+        symbol_id="app/api.py::Service.run", spec="preserve ordering"
+    )
+    assert C.case_to_raw(case)["binding"] == raw["cases"][0]["binding"]
+
+
 def test_validate_duplicate_case_id():
     raw = _raw()
     raw["cases"].append({"id": "f1", "input": {}})  # dup id (the alignment key)
@@ -112,6 +125,20 @@ def test_validate_empty_case_id():
     raw = _raw()
     raw["cases"].append({"id": "", "input": {}})
     with pytest.raises(ValueError, match="case with empty id"):
+        C.validate(C.from_raw(raw))
+
+
+def test_validate_case_id_pattern():
+    raw = _raw()
+    raw["cases"][0]["id"] = "Bad-ID"
+    with pytest.raises(ValueError, match="invalid id"):
+        C.validate(C.from_raw(raw))
+
+
+def test_validate_binding_symbol_id():
+    raw = _raw()
+    raw["cases"][0]["binding"] = {"symbol_id": "missing-delimiter"}
+    with pytest.raises(ValueError, match="invalid binding symbol_id"):
         C.validate(C.from_raw(raw))
 
 

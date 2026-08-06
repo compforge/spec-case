@@ -34,7 +34,7 @@ class PhaseEventMiddleware:
 
 ## 绑定（symbol-id）
 
-装饰器所在符号的 `__qualname__` 决定 symbol-id（见 [`specs/symbol-id`](../specs/symbol-id/spec.md)）：
+装饰器所在符号的 `__qualname__` 决定 symbol-id（见 [symbol-id 契约](../symbol-id.md)）：
 
 | 符号 | symbol-id |
 |------|---------|
@@ -61,7 +61,7 @@ class PhaseEventMiddleware:
 }
 ```
 
-`specgen` 的 Python 参考实现就在本仓 [`python/`](../python/)：装饰器从 `spec_case` import，抽取器跑 `python -m spec_case.specgen <src-dir> -o spec.json`（`ast` 静态扫描，不 import / 不运行被测代码）。
+`specgen` 的 Python 参考实现位于 [`toolchains/python/`](../../toolchains/python/)：装饰器从 `spec_case` import，抽取器跑 `python -m spec_case.specgen <src-dir> -o spec.json`（`ast` 静态扫描，不 import / 不运行被测代码）。
 
 ## specgen 怎么识别 marker（按名字 + 形状，不绑 import 来源）
 
@@ -97,4 +97,4 @@ from spec_case import spec, case, link, rule
 
 > 不必为此把包拆成两个（markers 包 + specgen 包）：零依赖、specgen 在 runtime 从不被 import，多带一个 `.py` 成本为零。
 
-详见包内 [`python/README.md`](../python/README.md)。
+详见包内 [`toolchains/python/README.md`](../../toolchains/python/README.md)。

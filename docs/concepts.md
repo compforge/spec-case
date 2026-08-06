@@ -28,7 +28,7 @@ case 是可积累、可共享的 git 资产。一个 case 文件是一个 **Case
 
 判定面（**face**，判定视角）：`e2e`（对错）、`eval`（效果）、`perf`（容量）、`trace`（链路归因）。与分类轴（facet）正交。
 
-`binding` 是关键新增：把"这条 case 断言的是哪个代码符号"升为一等字段，于是绑定可被消费方 key（见 [specs/symbol-id/spec.md](../specs/symbol-id/spec.md)）。
+`binding` 是关键新增：把"这条 case 断言的是哪个代码符号"升为一等字段，于是绑定可被消费方 key（见 [symbol-id 契约](../spec/symbol-id.md)）。
 
 ## link
 
@@ -70,11 +70,13 @@ case 是可积累、可共享的 git 资产。一个 case 文件是一个 **Case
 - **黑盒（harness）**：把 case 跑成 **verdict**，答"接口/契约对不对、效果好不好、容量如何"。
 - **白盒（[`ccr`](https://github.com/qiankunli/case-code-review)）**：评审某函数改动时，用 symbol-id 查到它的 spec + cases，作为**函数级 checklist** 注入 review（精干上下文，不展开 caller）。
 
-## 三种编写前端（都收敛到同一 case 模型）
+## 两类产物与三种编写前端
 
-1. **数据优先 `case.yaml`**：直接写 `CaseSet`。外部/共享 case 走这条。
-2. **代码优先注解**：贴着函数写标记（Python `@spec`/`@case`、Go `+spec`/`+case`，见 `languages/`）。co-location + 漂移检测——改函数就看见并更新它。
-3. **build-time 抽取**：NL 标记 → `specgen` 静态扫描（AST）→ 编译成 case + `spec.json`。**`specgen` 是语言相关工具，按本仓契约实现，不在 spec-case 内。**
+1. **数据优先 `case.yaml`**：直接写黑盒运行输入 `CaseSet`。外部/共享 case 走这条。
+2. **代码优先注解**：贴着函数写标记（Python `@spec`/`@case`、Go `+spec`/`+case`，见 [`spec/languages/`](../spec/languages/)）。co-location + 漂移检测——改函数就看见并更新它。
+3. **build-time 抽取**：NL 标记 → `specgen` 静态扫描（AST）→ 编译成白盒 review 投影 `spec.json`；各语言实现位于 `toolchains/`。
+
+CaseSet 与 `spec.json` 共享 spec/case 词汇和 symbol-id 绑定契约，但面向不同消费者，不是同一种序列化 shape。
 
 spec-case 把代码优先这条的**产物绑定**钉死：标记落在哪个符号上，就生成对应 symbol-id。
 
@@ -94,4 +96,4 @@ spec-case 把代码优先这条的**产物绑定**钉死：标记落在哪个符
 }
 ```
 
-`ccr` 拿到改动函数的 symbol-id → 查 `spec.json` → 把 `spec` + 该函数的 `cases` 作为 checklist 注入。schema 见 [schemas/spec-json.schema.json](../schemas/spec-json.schema.json)。
+`ccr` 拿到改动函数的 symbol-id → 查 `spec.json` → 把 `spec` + 该函数的 `cases` 作为 checklist 注入。schema 见 [`spec/spec-json.schema.json`](../spec/spec-json.schema.json)。
