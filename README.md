@@ -4,20 +4,20 @@
 
 ## What it is
 
-A **spec** states the intent/contract of a code symbol (a function). A **case** is one reusable stimulus + per-face judgment criteria hanging off that spec. spec-case's distinct contribution is a stable **code↔spec/case binding** — the **symbol-id** — so the same asset can be:
+A **spec** states the intent/contract of a code symbol. A CaseSet **case** is a reusable black-box stimulus plus per-face judgment criteria; `spec.json` carries the smaller white-box checklist projection attached to a symbol. spec-case's distinct contribution is the stable **code↔spec/case binding** — the **symbol-id** — shared by those assets. That binding supports two consumer paths:
 
-- **run** black-box by a harness (`case → verdict`), and
-- **attached** white-box by `ccr` to the changed review **unit** (spec/case as a per-function checklist).
+- A harness **runs** black-box cases (`case → verdict`).
+- `ccr` **attaches** the white-box projection to a changed review **unit** as a per-function checklist.
 
 A review **unit** is the review-side twin of a `case`: same "requirement/contract" asset, two consumers.
 
-## Layout (modeled on OpenSpec)
+## Layout
 
 - `docs/` — `concepts.md`, `glossary.md`
-- `specs/` — normative specs in OpenSpec's `Requirement / Scenario` style; `specs/symbol-id/` is the core contract
-- `languages/` — per-language expression (`go.md` markers, `python.md` decorators) + examples
-- `schemas/` — `case.schema.json`, `spec-json.schema.json` (the generated artifact `ccr` ingests)
-- `python/` — the pip package: markers + `specgen` (dependency-free core), plus the **canonical Case model** (`spec_case.model` / `spec_case.facets`, install with the `[model]` extra) — the single `Case`/`CaseSet` type black-box runners such as [case-harness](https://github.com/qiankunli/case-harness) load, validate and hash
+- `spec/` — normative schemas, the symbol-id contract, and per-language marker grammars
+- `conformance/` — shared behavior fixtures every language toolchain must pass
+- `toolchains/python/` — the pip package: markers, `specgen`, and the optional canonical Case model
+- `toolchains/go/` — the Go `specgen` implementation
 
 ```bash
 pip install spec-case          # markers + specgen only, zero deps

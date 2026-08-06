@@ -31,7 +31,7 @@ type PhaseEventMiddleware struct{ events []Event }
 
 ## 绑定（symbol-id）
 
-标记所在符号决定 symbol-id（见 [`specs/symbol-id`](../specs/symbol-id/spec.md)）：
+标记所在符号决定 symbol-id（见 [symbol-id 契约](../symbol-id.md)）：
 
 | 符号 | symbol-id |
 |------|---------|
@@ -60,4 +60,4 @@ type PhaseEventMiddleware struct{ events []Event }
 }
 ```
 
-`specgen` 的 Go 参考实现就在本仓 [`go/`](../go/)：`cd go && go build -o specgen .`，跑 `./specgen -root <repo-root> -o spec.json <src-dir>`（`go/ast` 静态扫描 doc 注释里的 marker，不编译 / 不运行被测代码）。
+`specgen` 的 Go 参考实现位于 [`toolchains/go/`](../../toolchains/go/)：`cd toolchains/go && go build -o specgen .`，跑 `./specgen -root <repo-root> -o spec.json <src-dir>`（`go/ast` 静态扫描 doc 注释里的 marker，不编译 / 不运行被测代码）。

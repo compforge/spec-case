@@ -5,7 +5,7 @@ returns the function unchanged, so importing and annotating costs nothing and
 never changes behavior. specgen reads them with `ast` (it never runs the code),
 so the no-op bodies are irrelevant — extraction is purely syntactic.
 
-Grammar: ../../languages/python.md. Meaning of each: ../../docs/concepts.md.
+Grammar: ../../../spec/languages/python.md. Meaning of each: ../../../docs/concepts.md.
 """
 from __future__ import annotations
 

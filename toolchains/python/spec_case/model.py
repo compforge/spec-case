@@ -1,4 +1,4 @@
-"""Canonical case — the runner-neutral INPUT contract (``schemas/case.schema.json``),
+"""Canonical case — the runner-neutral INPUT contract (``spec/case.schema.json``),
 the mirror of the verdict output contract (``case.id`` == ``verdict.case_id``).
 
 Requires the ``spec-case[model]`` extra (pydantic + pyyaml); the marker/specgen core
@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal
@@ -48,6 +49,8 @@ FACES: tuple[Face, ...] = ("e2e", "eval", "perf", "trace")
 # your SUT) — so the format is versioned, like verdict's. A file may declare `schema_version`
 # at the top; absent ⇒ 1. Bump only on an incompatible change.
 SCHEMA_VERSION = 1
+CASE_ID_PATTERN = re.compile(r"^[a-z][a-z0-9_]*$")
+SYMBOL_ID_PATTERN = re.compile(r"^[^:]+::[^:]+$")
 
 
 @dataclass
@@ -69,6 +72,14 @@ class Source:
 
 
 @dataclass
+class Binding:
+    """The code symbol a case asserts, plus its shared contract preamble."""
+
+    symbol_id: str
+    spec: str = ""
+
+
+@dataclass
 class Case:
     """One reusable stimulus + its per-face judgment criteria.
 
@@ -76,7 +87,8 @@ class Case:
     adapter (runner / solver / workload) — schemaless here on purpose. ``facets`` classify
     the case (validated against the set's vocab). ``requires`` names the sources it needs
     (declaration only). ``judge`` maps a face → that face's criteria dict; faces ∈ `FACES`,
-    all optional, inner fields runner-owned.
+    all optional, inner fields runner-owned. ``binding`` optionally attaches the case to the
+    code symbol whose contract it exercises.
     """
 
     id: str
@@ -85,6 +97,7 @@ class Case:
     facets: dict[str, str] = field(default_factory=dict)
     requires: list[str] = field(default_factory=list)
     judge: dict[str, dict] = field(default_factory=dict)
+    binding: Binding | None = None
 
 
 @dataclass
@@ -101,7 +114,7 @@ class CaseSet:
 
 
 def load_caseset(path: str | Path) -> CaseSet:
-    """Parse a canonical case file (``schemas/case.schema.json`` shape) → ``CaseSet``. Does
+    """Parse a canonical case file (``spec/case.schema.json`` shape) → ``CaseSet``. Does
     not validate beyond parsing — call ``validate`` for the integrity rules."""
     raw = yaml.safe_load(Path(path).read_text(encoding="utf-8")) or {}
     return from_raw(raw)
@@ -112,6 +125,15 @@ def case_from_raw(c: dict) -> Case:
     ``from_raw`` — exposed so a runner that owns its own set container (one that
     carries a corpus that ``CaseSet`` can't model) can still parse canonical cases directly,
     without round-tripping through a ``CaseSet``."""
+    binding_raw = c.get("binding")
+    binding = (
+        Binding(
+            symbol_id=binding_raw.get("symbol_id", ""),
+            spec=binding_raw.get("spec", ""),
+        )
+        if binding_raw
+        else None
+    )
     return Case(
         # .get: a missing id must surface as validate()'s "case with empty id",
         # not a KeyError deep in parsing
@@ -121,6 +143,7 @@ def case_from_raw(c: dict) -> Case:
         facets=dict(c.get("facets") or {}),
         requires=list(c.get("requires") or []),
         judge=dict(c.get("judge") or {}),
+        binding=binding,
     )
 
 
@@ -138,6 +161,10 @@ def case_to_raw(case: Case) -> dict:
         d["requires"] = list(case.requires)
     if case.judge:
         d["judge"] = {face: dict(crit) for face, crit in case.judge.items()}
+    if case.binding:
+        d["binding"] = {"symbol_id": case.binding.symbol_id}
+        if case.binding.spec:
+            d["binding"]["spec"] = case.binding.spec
     return d
 
 
@@ -168,11 +195,12 @@ def validate(cs: CaseSet) -> None:
     """Enforce the canonical integrity rules; raise ``ValueError`` on the first breach.
 
     - source names unique; each source has ``uri`` xor ``content``;
-    - case ids non-empty and set-unique (the alignment key — immutability is enforced
-      across edits by ``case_hash`` drift, not here);
+    - case ids match the schema pattern and are set-unique;
+      immutability across edits is enforced by ``case_hash`` drift, not here;
     - every ``case.facets`` key is a declared facet, values in-vocab (`spec_case.facets`);
     - every ``requires`` name resolves to a declared source;
     - every ``judge`` key is a known face (`FACES`); inner criteria are runner-owned.
+    - binding symbol ids match the symbol-id shape.
     """
     src_names: set[str] = set()
     for s in cs.sources:
@@ -190,6 +218,8 @@ def validate(cs: CaseSet) -> None:
     for c in cs.cases:
         if not c.id:
             raise ValueError("case with empty id")
+        if not CASE_ID_PATTERN.fullmatch(c.id):
+            raise ValueError(f"case with invalid id: {c.id!r}")
         if c.id in seen:
             raise ValueError(f"duplicate case id: {c.id}")
         seen.add(c.id)
@@ -202,6 +232,10 @@ def validate(cs: CaseSet) -> None:
                 raise ValueError(
                     f"case {c.id}: unknown judge face {face!r}; faces are {list(FACES)}"
                 )
+        if c.binding and not SYMBOL_ID_PATTERN.fullmatch(c.binding.symbol_id):
+            raise ValueError(
+                f"case {c.id}: invalid binding symbol_id {c.binding.symbol_id!r}"
+            )
 
 
 def case_hash(case: Case) -> str:

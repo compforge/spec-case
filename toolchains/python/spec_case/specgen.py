@@ -17,10 +17,12 @@ from __future__ import annotations
 import argparse
 import ast
 import json
+import re
 import sys
 from pathlib import Path
 
 _MARKERS = {"spec", "case", "link", "rule"}
+_CASE_ID_PATTERN = re.compile(r"^[a-z][a-z0-9_]*$")
 
 
 def _marker_name(dec: ast.expr) -> str | None:
@@ -70,7 +72,7 @@ def _entry_for(node: ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef) -> d
             spec_text = _str(_arg(dec, 0))
         elif name == "case":
             cid = _str(_arg(dec, 0))
-            if not cid:
+            if not _CASE_ID_PATTERN.fullmatch(cid):
                 continue
             c: dict = {"id": cid}
             for key, node in (

@@ -96,7 +96,7 @@ symbol-id 必须只由路径 + 符号决定，不含行号。
 
 ### Requirement: 消费契约
 
-`spec.json`（见 `schemas/spec-json.schema.json`）必须以 symbol-id 为顶层 key。
+`spec.json`（见 `spec-json.schema.json`）必须以 symbol-id 为顶层 key。
 
 #### Scenario: ccr 查表
 

@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/qiankunli/spec-case/schemas/case.schema.json",
+  "$id": "https://github.com/compforge/spec-case/spec/case.schema.json",
   "title": "CaseSet",
   "description": "A case file: an accumulable, shareable git asset of spec/cases bound to code.",
   "type": "object",
@@ -79,7 +79,7 @@
     },
     "binding": {
       "type": "object",
-      "description": "Binds this case to a code symbol. See specs/symbol-id.",
+      "description": "Binds this case to a code symbol. See spec/symbol-id.md.",
       "required": ["symbol_id"],
       "additionalProperties": false,
       "properties": {

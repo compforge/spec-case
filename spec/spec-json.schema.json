@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/qiankunli/spec-case/schemas/spec-json.schema.json",
+  "$id": "https://github.com/compforge/spec-case/spec/spec-json.schema.json",
   "title": "spec.json",
   "description": "The generated artifact produced by specgen and ingested by ccr's SpecBuilder. Indexed by symbol-id.",
   "type": "object",
