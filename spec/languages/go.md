@@ -60,4 +60,7 @@ type PhaseEventMiddleware struct{ events []Event }
 }
 ```
 
-`specgen` 的 Go 参考实现位于 [`toolchains/go/`](../../toolchains/go/)：`cd toolchains/go && go build -o specgen .`，跑 `./specgen -root <repo-root> -o spec.json <src-dir>`（`go/ast` 静态扫描 doc 注释里的 marker，不编译 / 不运行被测代码）。
+`specgen` 的 Go 参考实现位于 [`toolchains/go/`](../../toolchains/go/)：可用
+`go run github.com/compforge/spec-case/toolchains/go/cmd/specgen -root <repo-root> -o spec.json <src-dir>`
+直接从 Git 依赖执行。`marker/` 是 marker grammar 的复用入口，`specgen/` 负责投影为
+`spec.json`；两者都只做 `go/ast` 静态分析，不编译 / 不运行被测代码。

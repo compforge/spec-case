@@ -4,12 +4,14 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/compforge/spec-case/toolchains/go/specgen"
 )
 
 func TestRunCheck(t *testing.T) {
 	dir := t.TempDir()
 	out := filepath.Join(dir, "spec.json")
-	index := map[string]Entry{"a.go::F": {Spec: "x", Cases: []Case{}}}
+	index := map[string]specgen.Entry{"a.go::F": {Spec: "x", Cases: []specgen.Case{}}}
 
 	data, _ := canonical(index)
 	if err := os.WriteFile(out, data, 0o644); err != nil {
@@ -19,11 +21,11 @@ func TestRunCheck(t *testing.T) {
 	if rc := runCheck(out, index); rc != 0 {
 		t.Errorf("identical index should be up to date, rc=%d want 0", rc)
 	}
-	renamed := map[string]Entry{"a.go::G": {Spec: "x", Cases: []Case{}}}
+	renamed := map[string]specgen.Entry{"a.go::G": {Spec: "x", Cases: []specgen.Case{}}}
 	if rc := runCheck(out, renamed); rc != 1 {
 		t.Errorf("renamed symbol should drift, rc=%d want 1", rc)
 	}
-	changed := map[string]Entry{"a.go::F": {Spec: "y", Cases: []Case{}}}
+	changed := map[string]specgen.Entry{"a.go::F": {Spec: "y", Cases: []specgen.Case{}}}
 	if rc := runCheck(out, changed); rc != 1 {
 		t.Errorf("changed markers should drift, rc=%d want 1", rc)
 	}
@@ -43,7 +45,7 @@ func TestRunCheck_RealRoundTrip(t *testing.T) {
 		[]byte("package p\n\n// +spec=`x`\nfunc F() {}\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	idx, err := extractTree(dir, dir)
+	idx, err := specgen.ExtractTree(dir, dir)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -52,7 +54,7 @@ func TestRunCheck_RealRoundTrip(t *testing.T) {
 	if err := os.WriteFile(out, data, 0o644); err != nil {
 		t.Fatal(err)
 	}
-	idx2, _ := extractTree(dir, dir)
+	idx2, _ := specgen.ExtractTree(dir, dir)
 	if rc := runCheck(out, idx2); rc != 0 {
 		t.Errorf("freshly-extracted spec.json should be up to date, rc=%d", rc)
 	}
