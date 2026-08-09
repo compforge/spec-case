@@ -29,6 +29,9 @@ symbol-id 必须为 `<relpath>::<symbol>` 两段式。
 - **WHEN** Python 类 `PhaseEventMiddleware`，模块 `common.middleware.trace`
 - **THEN** fqn = `common.middleware.trace.PhaseEventMiddleware`（点号 import 路径由 `__init__.py` 包链推导）
 
+TypeScript 首版 toolchain 不生成可选 `fqn`。npm package exports、`tsconfig` paths 与源码相对路径之间
+没有统一映射；在跨仓身份契约明确前，省略比生成不稳定的伪 FQN 更安全。
+
 ### Requirement: Go 符号规范
 
 Go 的 `symbol` 必须能无歧义定位到一个顶层函数、方法或类型（type）。
@@ -69,6 +72,35 @@ Python 的 `symbol` 必须是符号的 `__qualname__`（不含模块）——函
 - **WHEN** 符号是类 `class PhaseEventMiddleware:`，文件 `common/middleware/trace.py`
 - **THEN** `symbol` = 类的 `__qualname__`（如 `PhaseEventMiddleware`，嵌套类为 `Outer.Inner`）
 - **AND** symbol-id = `common/middleware/trace.py::PhaseEventMiddleware`
+
+### Requirement: TypeScript 符号规范
+
+TypeScript 的 `symbol` 使用声明名或外层 binding name；namespace、class、interface 形成点号限定前缀。
+
+#### Scenario: 普通函数与 function-valued variable
+
+- **WHEN** `src/notebook.ts` 声明 `function createNotebook(...)`，或声明
+  `const createNotebook = (...) => ...`
+- **THEN** symbol-id = `src/notebook.ts::createNotebook`
+- **AND** function expression 自带的内部名字不参与身份，使用外层变量的 binding name
+
+#### Scenario: class method 与 function-valued property
+
+- **WHEN** `NotebookService` 声明 method `createNotebook(...)`，或 property
+  `createNotebook = (...) => ...`
+- **THEN** symbol-id = `src/notebook.ts::NotebookService.createNotebook`
+
+#### Scenario: class、interface、type alias 与 interface method
+
+- **WHEN** 声明 class / interface / type alias `RequestContext`
+- **THEN** symbol-id = `src/types.ts::RequestContext`
+- **WHEN** interface `NotebookStore` 声明 method `get(...)`
+- **THEN** symbol-id = `src/store.ts::NotebookStore.get`
+
+#### Scenario: namespace
+
+- **WHEN** namespace `Notebook` 内声明 function `create(...)`
+- **THEN** symbol-id = `src/notebook.ts::Notebook.create`
 
 ### Requirement: 基于符号、不基于行号
 
