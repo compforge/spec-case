@@ -4,11 +4,13 @@
       "name": "full_symbol_entry",
       "source": {
         "python": "class Service:\n    @spec(\"does useful work\")\n    @case(\"happy\", \"succeeds\", input=\"minimal\", expect=\"ok\", forbid=\"duplicate\")\n    @link(\"docs/design.md\")\n    @rule(\"preserve ordering\")\n    def run(self): ...\n",
-        "go": "package fixture\n\n// +spec=`does useful work`\n// +case:id=happy,desc=`succeeds`,input=`minimal`,expect=`ok`,forbid=`duplicate`\n// +link=docs/design.md\n// +rule=`preserve ordering`\nfunc (s *Service) Run() {}\n"
+        "go": "package fixture\n\n// +spec=`does useful work`\n// +case:id=happy,desc=`succeeds`,input=`minimal`,expect=`ok`,forbid=`duplicate`\n// +link=docs/design.md\n// +rule=`preserve ordering`\nfunc (s *Service) Run() {}\n",
+        "typescript": "class Service {\n  @Spec(\"does useful work\")\n  @Case(\"happy\", \"succeeds\", { input: \"minimal\", expect: \"ok\", forbid: \"duplicate\" })\n  @Link(\"docs/design.md\")\n  @Rule(\"preserve ordering\")\n  run(): void {}\n}\n"
       },
       "symbol": {
         "python": "fixture.py::Service.run",
-        "go": "fixture.go::Service.Run"
+        "go": "fixture.go::Service.Run",
+        "typescript": "fixture.ts::Service.run"
       },
       "expected_entry": {
         "spec": "does useful work",
@@ -29,11 +31,13 @@
       "name": "spec_only_keeps_empty_cases",
       "source": {
         "python": "@spec(\"contract only\")\ndef run(): ...\n",
-        "go": "package fixture\n\n// +spec=`contract only`\nfunc Run() {}\n"
+        "go": "package fixture\n\n// +spec=`contract only`\nfunc Run() {}\n",
+        "typescript": "/** @spec contract only */\nfunction run(): void {}\n"
       },
       "symbol": {
         "python": "fixture.py::run",
-        "go": "fixture.go::Run"
+        "go": "fixture.go::Run",
+        "typescript": "fixture.ts::run"
       },
       "expected_entry": {
         "spec": "contract only",
@@ -44,11 +48,13 @@
       "name": "invalid_case_id_is_rejected",
       "source": {
         "python": "@case(\"Bad-ID\", \"invalid\")\ndef run(): ...\n",
-        "go": "package fixture\n\n// +case:id=Bad-ID,desc=`invalid`\nfunc Run() {}\n"
+        "go": "package fixture\n\n// +case:id=Bad-ID,desc=`invalid`\nfunc Run() {}\n",
+        "typescript": "/** @case id=Bad-ID,desc=invalid */\nfunction run(): void {}\n"
       },
       "symbol": {
         "python": "fixture.py::run",
-        "go": "fixture.go::Run"
+        "go": "fixture.go::Run",
+        "typescript": "fixture.ts::run"
       },
       "expected_entry": null
     }

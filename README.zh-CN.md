@@ -18,6 +18,7 @@
 - `conformance/` — 所有语言工具链共同通过的行为 fixture
 - `toolchains/python/` — Python marker 包、`specgen` 与可选 canonical Case model
 - `toolchains/go/` — Go `specgen` 实现
+- `toolchains/typescript/` — TypeScript decorator / JSDoc marker 与 `specgen` 实现
 
 ## 状态
 

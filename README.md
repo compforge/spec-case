@@ -18,10 +18,12 @@ A review **unit** is the review-side twin of a `case`: same "requirement/contrac
 - `conformance/` — shared behavior fixtures every language toolchain must pass
 - `toolchains/python/` — the pip package: markers, `specgen`, and the optional canonical Case model
 - `toolchains/go/` — the Go `specgen` implementation
+- `toolchains/typescript/` — TypeScript decorators, JSDoc markers, and the Compiler API `specgen`
 
 ```bash
 pip install spec-case          # markers + specgen only, zero deps
 pip install 'spec-case[model]' # + canonical Case model (pydantic, pyyaml)
+npm install @compforge/spec-case # TypeScript markers + specgen
 ```
 
 ## Status
