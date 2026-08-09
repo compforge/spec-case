@@ -6,9 +6,8 @@
 //
 // The marker grammar follows kubebuilder's convention — a "+" prefix and a
 // single-line "name:key=value" form, which sidesteps gofmt's reflow of
-// multi-line doc comments — but is parsed directly here (no controller-tools
-// dependency, which buys little for these all-string fields).
-package main
+// multi-line doc comments — and is shared through the marker package.
+package specgen
 
 import (
 	"go/ast"
@@ -17,14 +16,10 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
-)
 
-// caseIDPattern constrains a case id to a stable, file-name-safe slug — the
-// schema's ^[a-z][a-z0-9_]*$. It doubles as a cross-run primary key, so it must
-// be immutable and unique; a case with a malformed id is skipped.
-var caseIDPattern = regexp.MustCompile(`^[a-z][a-z0-9_]*$`)
+	"github.com/compforge/spec-case/toolchains/go/marker"
+)
 
 // Case mirrors one spec.json case entry.
 type Case struct {
@@ -47,90 +42,23 @@ type Entry struct {
 // parseMarkers scans a doc comment (of a function or a type) for the markers and
 // builds its entry, or returns ok=false when it carries none. Each marker is one line.
 func parseMarkers(doc *ast.CommentGroup) (Entry, bool) {
-	e := Entry{Cases: []Case{}}
-	found := false
+	lines := make([]string, 0, len(doc.List))
 	for _, c := range doc.List {
-		line := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(c.Text), "//"))
-		switch {
-		case strings.HasPrefix(line, "+spec="):
-			e.Spec = unquote(strings.TrimPrefix(line, "+spec="))
-			found = true
-		case strings.HasPrefix(line, "+case:"):
-			args := parseMarkerArgs(strings.TrimPrefix(line, "+case:"))
-			if !caseIDPattern.MatchString(args["id"]) {
-				continue // malformed id — skip this case
-			}
-			e.Cases = append(e.Cases, Case{
-				ID: args["id"], Desc: args["desc"],
-				Input: args["input"], Expect: args["expect"], Forbid: args["forbid"],
-			})
-			found = true
-		case strings.HasPrefix(line, "+link="):
-			if v := unquote(strings.TrimPrefix(line, "+link=")); v != "" {
-				e.Links = append(e.Links, v)
-				found = true
-			}
-		case strings.HasPrefix(line, "+rule="):
-			if v := unquote(strings.TrimPrefix(line, "+rule=")); v != "" {
-				e.Rules = append(e.Rules, v)
-				found = true
-			}
-		}
+		lines = append(lines, c.Text)
 	}
-	return e, found
-}
-
-// parseMarkerArgs splits a "key=value,key=value" string. A value may be backtick-
-// or double-quote-wrapped, in which case embedded commas/semicolons are literal;
-// an unquoted value runs to the next comma.
-func parseMarkerArgs(s string) map[string]string {
-	args := map[string]string{}
-	for i, n := 0, len(s); i < n; {
-		for i < n && (s[i] == ',' || s[i] == ' ') {
-			i++
-		}
-		keyStart := i
-		for i < n && s[i] != '=' {
-			i++
-		}
-		if i >= n {
-			break // no '=' → malformed tail, stop
-		}
-		key := strings.TrimSpace(s[keyStart:i])
-		i++ // skip '='
-		var val string
-		if i < n && (s[i] == '`' || s[i] == '"') {
-			q := s[i]
-			i++
-			start := i
-			for i < n && s[i] != q {
-				i++
-			}
-			val = s[start:i]
-			if i < n {
-				i++ // skip closing quote
-			}
-		} else {
-			start := i
-			for i < n && s[i] != ',' {
-				i++
-			}
-			val = strings.TrimSpace(s[start:i])
-		}
-		if key != "" {
-			args[key] = val
-		}
+	parsed := marker.Parse(strings.Join(lines, "\n"))
+	e := Entry{
+		Spec:  parsed.Spec,
+		Cases: make([]Case, 0, len(parsed.Cases)),
+		Links: parsed.Links,
+		Rules: parsed.Rules,
 	}
-	return args
-}
-
-// unquote strips a single layer of matching backtick or double quotes.
-func unquote(s string) string {
-	s = strings.TrimSpace(s)
-	if len(s) >= 2 && (s[0] == '`' || s[0] == '"') && s[len(s)-1] == s[0] {
-		return s[1 : len(s)-1]
+	for _, c := range parsed.Cases {
+		e.Cases = append(e.Cases, Case{
+			ID: c.ID, Desc: c.Desc, Input: c.Input, Expect: c.Expect, Forbid: c.Forbid,
+		})
 	}
-	return s
+	return e, e.Spec != "" || len(e.Cases) > 0 || len(e.Links) > 0 || len(e.Rules) > 0
 }
 
 // symbolOf returns a function's symbol: "Name" for a free function, "Recv.Method"
@@ -163,10 +91,10 @@ func recvTypeName(fd *ast.FuncDecl) string {
 	return ""
 }
 
-// extractFile parses Go source and returns spec.json entries keyed by symbol-id
+// ExtractFile parses Go source and returns spec.json entries keyed by symbol-id
 // (<relpath>::<symbol>). Returns nil on a parse error — specgen never fails the
 // build.
-func extractFile(src, relpath string) map[string]Entry {
+func ExtractFile(src, relpath string) map[string]Entry {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, relpath, src, parser.ParseComments|parser.SkipObjectResolution)
 	if err != nil {
@@ -210,10 +138,10 @@ func extractFile(src, relpath string) map[string]Entry {
 	return out
 }
 
-// extractTree extracts spec.json from every .go under srcDir; symbol-id paths are
+// ExtractTree extracts spec.json from every .go under srcDir; symbol-id paths are
 // relative to root (the repo root, so keys match ccr's review address space). Each
 // entry's fqn (importpath.Symbol) is resolved from the file's package via go.mod.
-func extractTree(srcDir, root string) (map[string]Entry, error) {
+func ExtractTree(srcDir, root string) (map[string]Entry, error) {
 	out := map[string]Entry{}
 	memo := map[string]goMod{} // go.mod lookups, memoized per start dir
 	err := filepath.WalkDir(srcDir, func(path string, d fs.DirEntry, err error) error {
@@ -229,7 +157,7 @@ func extractTree(srcDir, root string) (map[string]Entry, error) {
 			return nil
 		}
 		pkg := pkgImportPath(path, memo) // "" when no resolvable go.mod
-		for k, v := range extractFile(string(src), filepath.ToSlash(rel)) {
+		for k, v := range ExtractFile(string(src), filepath.ToSlash(rel)) {
 			if pkg != "" {
 				if i := strings.Index(k, "::"); i >= 0 {
 					v.Fqn = pkg + "." + k[i+2:] // symbol = the key's ::suffix

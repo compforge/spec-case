@@ -1,4 +1,4 @@
-package main
+package specgen
 
 import (
 	"encoding/json"
@@ -29,7 +29,7 @@ func TestSharedConformance(t *testing.T) {
 	if !ok {
 		t.Fatal("resolve conformance fixture: current test file is unknown")
 	}
-	path := filepath.Join(filepath.Dir(currentFile), "..", "..", "conformance", "specgen", "cases.json")
+	path := filepath.Join(filepath.Dir(currentFile), "..", "..", "..", "conformance", "specgen", "cases.json")
 	data, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("read conformance fixture %s: %v", path, err)
@@ -41,7 +41,7 @@ func TestSharedConformance(t *testing.T) {
 
 	for _, tc := range fixture.Cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			entry, found := extractFile(tc.Source.Go, "fixture.go")[tc.Symbol.Go]
+			entry, found := ExtractFile(tc.Source.Go, "fixture.go")[tc.Symbol.Go]
 			if tc.Expected == nil {
 				if found {
 					t.Fatalf("unexpected entry: %+v", entry)
@@ -71,7 +71,7 @@ func TestExtractMarkers(t *testing.T) {
 		"// Unmarked has no markers.\n" +
 		"func Unmarked() {}\n"
 
-	out := extractFile(src, "app/api.go")
+	out := ExtractFile(src, "app/api.go")
 
 	e, ok := out["app/api.go::Service.CreateNotebook"] // method binds to Recv.Method
 	if !ok {
@@ -117,7 +117,7 @@ func TestExtractTypeLevelMarkers(t *testing.T) {
 		"// Plain has no markers.\n" +
 		"type Plain struct{}\n"
 
-	out := extractFile(src, "mw/trace.go")
+	out := ExtractFile(src, "mw/trace.go")
 
 	e, ok := out["mw/trace.go::PhaseEventMiddleware"]
 	if !ok {
@@ -160,7 +160,7 @@ func TestExtractTree_FqnFromGoMod(t *testing.T) {
 	write("common/middleware/trace/trace.go",
 		"package trace\n\n// +rule=`per-request only — do not cache/reuse`\ntype PhaseEventMiddleware struct{ events []int }\n")
 
-	out, err := extractTree(dir, dir)
+	out, err := ExtractTree(dir, dir)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -180,28 +180,15 @@ func TestParseModulePath_StripsTrailingComment(t *testing.T) {
 	}
 }
 
-func TestParseMarkerArgs_QuotingAndCommas(t *testing.T) {
-	args := parseMarkerArgs("id=x,desc=`a, b, c`,expect=plain,note=\"d, e\"")
-	if args["desc"] != "a, b, c" { // commas inside backticks are literal
-		t.Errorf("backtick desc: %q", args["desc"])
-	}
-	if args["note"] != "d, e" { // double-quote wrapping also supported
-		t.Errorf("quoted note: %q", args["note"])
-	}
-	if args["expect"] != "plain" { // unquoted runs to the next comma
-		t.Errorf("unquoted: %q", args["expect"])
-	}
-}
-
 func TestMalformedCaseIDSkipped(t *testing.T) {
-	out := extractFile("package p\n\n// +case:id=Bad-ID,desc=`x`\nfunc f() {}\n", "f.go")
+	out := ExtractFile("package p\n\n// +case:id=Bad-ID,desc=`x`\nfunc f() {}\n", "f.go")
 	if _, ok := out["f.go::f"]; ok {
 		t.Error("a function whose only case has a malformed id should be absent")
 	}
 }
 
 func TestSpecOnlyHasEmptyCases(t *testing.T) {
-	out := extractFile("package p\n\n// +spec=`x`\nfunc f() {}\n", "f.go")
+	out := ExtractFile("package p\n\n// +spec=`x`\nfunc f() {}\n", "f.go")
 	e := out["f.go::f"]
 	if e.Spec != "x" || e.Cases == nil || len(e.Cases) != 0 {
 		t.Errorf("spec-only entry must have empty non-nil cases: %+v", e)
@@ -209,7 +196,7 @@ func TestSpecOnlyHasEmptyCases(t *testing.T) {
 }
 
 func TestUnparseableIsNil(t *testing.T) {
-	if extractFile("func (:", "bad.go") != nil {
+	if ExtractFile("func (:", "bad.go") != nil {
 		t.Error("unparseable source should extract to nil")
 	}
 }

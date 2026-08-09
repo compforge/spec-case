@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"os"
 	"sort"
+
+	"github.com/compforge/spec-case/toolchains/go/specgen"
 )
 
 func main() {
@@ -24,7 +26,7 @@ func main() {
 		r = src
 	}
 
-	index, err := extractTree(src, r)
+	index, err := specgen.ExtractTree(src, r)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "specgen:", err)
 		os.Exit(1)
@@ -68,7 +70,7 @@ func canonical(v any) ([]byte, error) {
 // at `out`. Drift means the markers no longer match what's committed — a symbol
 // was renamed/moved (new symbol-id), removed, or its markers changed without
 // regenerating. Returns 0 up-to-date, 1 on drift, 2 on misuse.
-func runCheck(out string, fresh map[string]Entry) int {
+func runCheck(out string, fresh map[string]specgen.Entry) int {
 	if out == "-" {
 		fmt.Fprintln(os.Stderr, "specgen -check needs -o <spec.json>")
 		return 2
@@ -78,7 +80,7 @@ func runCheck(out string, fresh map[string]Entry) int {
 		fmt.Fprintf(os.Stderr, "specgen -check: %s does not exist — run specgen to create it\n", out)
 		return 1
 	}
-	committed := map[string]Entry{}
+	committed := map[string]specgen.Entry{}
 	if len(bytes.TrimSpace(data)) > 0 {
 		if err := json.Unmarshal(data, &committed); err != nil {
 			fmt.Fprintf(os.Stderr, "specgen -check: %s is not valid JSON: %v\n", out, err)
@@ -98,7 +100,7 @@ func runCheck(out string, fresh map[string]Entry) int {
 	return 1
 }
 
-func reportDrift(committed, fresh map[string]Entry) {
+func reportDrift(committed, fresh map[string]specgen.Entry) {
 	for _, uid := range sortedIDs(fresh) {
 		if _, ok := committed[uid]; !ok {
 			fmt.Fprintf(os.Stderr, "  + %s  (marked in code, missing from spec.json)\n", uid)
@@ -122,7 +124,7 @@ func reportDrift(committed, fresh map[string]Entry) {
 	}
 }
 
-func sortedIDs(m map[string]Entry) []string {
+func sortedIDs(m map[string]specgen.Entry) []string {
 	ids := make([]string, 0, len(m))
 	for k := range m {
 		ids = append(ids, k)
