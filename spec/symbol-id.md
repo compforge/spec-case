@@ -146,3 +146,11 @@ symbol-id 必须只由路径 + 符号决定，不含行号。
 - **THEN** `SpecBuilder` 用 `U` 在 `spec.json` 查到 `{fqn?, specs[]}`
 - **AND** `specs[]` 中每个元素都属于同一个代码 symbol；只有一个时 `id` 可省略，多个时 `id` 必须唯一
 - **AND** 查不到 = 该函数无 spec/case（合法，跳过，不报错）
+
+#### Scenario: CaseSet 精确绑定命名 spec
+
+- **WHEN** CaseSet 中一条 case 绑定的 symbol 只有一个 spec
+- **THEN** `binding.symbol_id` 足以定位，`binding.spec_id` 可省略
+- **WHEN** 该 symbol 在 `spec.json` 的 `specs[]` 中有多个命名 spec
+- **THEN** case 以 `binding.spec_id` 引用目标 `specs[].id`
+- **AND** `binding.spec_id` 遵循与 `specs[].id` 相同的格式 `^[a-z][a-z0-9_]*$`

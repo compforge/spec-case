@@ -79,7 +79,7 @@
     },
     "binding": {
       "type": "object",
-      "description": "Binds this case to a code symbol. See spec/symbol-id.md.",
+      "description": "Binds this case to a spec on a code symbol. See spec/symbol-id.md.",
       "required": ["symbol_id"],
       "additionalProperties": false,
       "properties": {
@@ -88,9 +88,14 @@
           "pattern": "^[^:]+::[^:]+$",
           "description": "<relpath>::<symbol>, e.g. internal/notebook/handler.go::Service.CreateNotebook"
         },
+        "spec_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "Optional spec identity within the symbol; required to disambiguate when that symbol carries multiple specs."
+        },
         "spec": {
           "type": "string",
-          "description": "The symbol's contract preamble; shared by all cases on the same symbol_id."
+          "description": "The bound spec's contract preamble; shared by all cases with the same symbol_id and spec_id."
         }
       }
     }
