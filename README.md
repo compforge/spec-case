@@ -11,6 +11,22 @@ A **spec** states the intent/contract of a code symbol. A CaseSet **case** is a 
 
 A review **unit** is the review-side twin of a `case`: same "requirement/contract" asset, two consumers.
 
+## Structured intent annotations
+
+Think of spec-case markers as **structured comments bound to code symbols** — more precisely,
+structured intent annotations. They preserve the reasoning that cannot be recovered reliably from
+the implementation alone, while keeping it addressable and machine-readable:
+
+- `spec` records what the code is intended to guarantee and why the contract exists.
+- `rule` records what a future change or review must keep in mind.
+- `link` points to the design context or related symbol that explains the intent.
+- `case` adds a concrete validation scenario when one is worth preserving; it is optional.
+
+Their primary purpose is not to replace unit or e2e tests. Tests and harnesses prove behavior;
+markers preserve the intent behind that behavior. Unlike free-form comments, markers use a stable
+vocabulary, bind to a `symbol-id`, compile into `spec.json`, and can be checked for drift with
+`specgen --check`.
+
 ## Layout
 
 - `docs/` — `concepts.md`, `glossary.md`
