@@ -42,13 +42,27 @@ def test_binding_round_trip():
     raw = _raw()
     raw["cases"][0]["binding"] = {
         "symbol_id": "app/api.py::Service.run",
+        "spec_id": "ordered_output",
         "spec": "preserve ordering",
     }
     case = C.from_raw(raw).cases[0]
     assert case.binding == C.Binding(
-        symbol_id="app/api.py::Service.run", spec="preserve ordering"
+        symbol_id="app/api.py::Service.run",
+        spec="preserve ordering",
+        spec_id="ordered_output",
     )
     assert C.case_to_raw(case)["binding"] == raw["cases"][0]["binding"]
+
+
+def test_single_spec_binding_omits_spec_id():
+    binding = C.Binding(
+        symbol_id="app/api.py::Service.run", spec="preserve ordering"
+    )
+    raw = C.case_to_raw(C.Case(id="f1", input={}, binding=binding))["binding"]
+    assert raw == {
+        "symbol_id": "app/api.py::Service.run",
+        "spec": "preserve ordering",
+    }
 
 
 def test_validate_duplicate_case_id():
@@ -139,6 +153,16 @@ def test_validate_binding_symbol_id():
     raw = _raw()
     raw["cases"][0]["binding"] = {"symbol_id": "missing-delimiter"}
     with pytest.raises(ValueError, match="invalid binding symbol_id"):
+        C.validate(C.from_raw(raw))
+
+
+def test_validate_binding_spec_id():
+    raw = _raw()
+    raw["cases"][0]["binding"] = {
+        "symbol_id": "app/api.py::Service.run",
+        "spec_id": "Bad-ID",
+    }
+    with pytest.raises(ValueError, match="invalid binding spec_id"):
         C.validate(C.from_raw(raw))
 
 

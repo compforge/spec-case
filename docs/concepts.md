@@ -25,11 +25,13 @@ case 是可积累、可共享的 git 资产。一个 case 文件是一个 **Case
 | `facets` | 分类轴（difficulty/type…），词表在 CaseSet 声明 | 报表分组/透视用 |
 | `requires` | 依赖的 source（素材）名 | 素材另行声明，运行时按需 provision |
 | `judge.<face>` | 各判定面判据 | `face ∈ {e2e, eval, perf, trace}`，各自可选；缺某面 = 只观测不判 |
-| **`binding`** | **代码符号绑定：`symbol-id` + spec 文本** | **★ spec-case 独有**——把这条 case 钉在它断言的函数上 |
+| **`binding`** | **spec 绑定：`symbol-id` + 可选 `spec_id` + spec 文本** | **★ spec-case 独有**——把这条 case 钉在它断言的代码契约上 |
 
 判定面（**face**，判定视角）：`e2e`（对错）、`eval`（效果）、`perf`（容量）、`trace`（链路归因）。与分类轴（facet）正交。
 
-`binding` 是关键新增：把"这条 case 断言的是哪个代码符号"升为一等字段，于是绑定可被消费方 key（见 [symbol-id 契约](../spec/symbol-id.md)）。
+`binding` 是关键新增：`symbol_id` 先定位代码符号；同一 symbol 有多个 spec 时，`spec_id` 再定位其中
+一份命名契约。单 spec 的 `spec_id` 可省略，与 `spec.json` 的 `specs[].id` 规则一致（见
+[symbol-id 契约](../spec/symbol-id.md)）。
 
 ## link
 

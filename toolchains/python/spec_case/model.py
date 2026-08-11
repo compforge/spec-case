@@ -50,6 +50,7 @@ FACES: tuple[Face, ...] = ("e2e", "eval", "perf", "trace")
 # at the top; absent ⇒ 1. Bump only on an incompatible change.
 SCHEMA_VERSION = 1
 CASE_ID_PATTERN = re.compile(r"^[a-z][a-z0-9_]*$")
+SPEC_ID_PATTERN = CASE_ID_PATTERN
 SYMBOL_ID_PATTERN = re.compile(r"^[^:]+::[^:]+$")
 
 
@@ -73,10 +74,11 @@ class Source:
 
 @dataclass
 class Binding:
-    """The code symbol a case asserts, plus its shared contract preamble."""
+    """The spec a case asserts, identified within its code symbol."""
 
     symbol_id: str
     spec: str = ""
+    spec_id: str | None = None
 
 
 @dataclass
@@ -130,6 +132,7 @@ def case_from_raw(c: dict) -> Case:
         Binding(
             symbol_id=binding_raw.get("symbol_id", ""),
             spec=binding_raw.get("spec", ""),
+            spec_id=binding_raw.get("spec_id"),
         )
         if binding_raw
         else None
@@ -163,6 +166,8 @@ def case_to_raw(case: Case) -> dict:
         d["judge"] = {face: dict(crit) for face, crit in case.judge.items()}
     if case.binding:
         d["binding"] = {"symbol_id": case.binding.symbol_id}
+        if case.binding.spec_id is not None:
+            d["binding"]["spec_id"] = case.binding.spec_id
         if case.binding.spec:
             d["binding"]["spec"] = case.binding.spec
     return d
@@ -200,7 +205,7 @@ def validate(cs: CaseSet) -> None:
     - every ``case.facets`` key is a declared facet, values in-vocab (`spec_case.facets`);
     - every ``requires`` name resolves to a declared source;
     - every ``judge`` key is a known face (`FACES`); inner criteria are runner-owned.
-    - binding symbol ids match the symbol-id shape.
+    - binding symbol ids match the symbol-id shape; optional spec ids match the spec-id shape.
     """
     src_names: set[str] = set()
     for s in cs.sources:
@@ -236,6 +241,11 @@ def validate(cs: CaseSet) -> None:
             raise ValueError(
                 f"case {c.id}: invalid binding symbol_id {c.binding.symbol_id!r}"
             )
+        if c.binding and c.binding.spec_id is not None:
+            if not SPEC_ID_PATTERN.fullmatch(c.binding.spec_id):
+                raise ValueError(
+                    f"case {c.id}: invalid binding spec_id {c.binding.spec_id!r}"
+                )
 
 
 def case_hash(case: Case) -> str:
