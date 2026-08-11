@@ -46,7 +46,7 @@ def unmarked():
 def test_extract_markers():
     out = specgen.extract_file(SAMPLE, "app/api.py")
 
-    e = out["app/api.py::create_notebook"]
+    e = out["app/api.py::create_notebook"]["specs"][0]
     assert "tenant header required" in e["spec"]
     assert [c["id"] for c in e["cases"]] == ["happy", "dup"]
     assert e["cases"][0]["desc"] == "name only succeeds"
@@ -55,10 +55,10 @@ def test_extract_markers():
     assert e["rules"] == ["hot path: watch new sync DB calls"]
 
     # a method binds to <relpath>::Class.method
-    assert out["app/api.py::Svc.get"]["cases"][0]["id"] == "ok"
+    assert out["app/api.py::Svc.get"]["specs"][0]["cases"][0]["id"] == "ok"
 
     # all four markers bind to a class symbol-id <relpath>::Class (type-level)
-    cls = out["app/api.py::PhaseEventMiddleware"]
+    cls = out["app/api.py::PhaseEventMiddleware"]["specs"][0]
     assert cls["spec"] == "accumulates per-run events; instances hold state"
     assert [c["id"] for c in cls["cases"]] == ["reuse_leaks"]
     assert cls["links"] == ["docs/middleware.md"]
@@ -110,7 +110,49 @@ def test_module_prefix_from_init_chain(tmp_path):
 def test_entry_always_has_cases():
     # a spec-only function still emits the (schema-required) cases array, empty
     out = specgen.extract_file('@spec("x")\ndef f(): ...\n', "f.py")
-    assert out["f.py::f"] == {"cases": [], "spec": "x"}
+    assert out["f.py::f"] == {"specs": [{"cases": [], "spec": "x"}]}
+
+
+def test_spec_id_distinguishes_multiple_declarations():
+    source = '''
+from typing import overload
+
+@overload
+@spec("parses string input", id="string_input")
+def parse(value: str) -> str: ...
+
+@overload
+@spec("parses integer input", id="integer_input")
+def parse(value: int) -> int: ...
+
+def parse(value): return value
+'''
+    assert specgen.extract_file(source, "parse.py")["parse.py::parse"] == {
+        "specs": [
+            {"id": "string_input", "cases": [], "spec": "parses string input"},
+            {"id": "integer_input", "cases": [], "spec": "parses integer input"},
+        ]
+    }
+
+
+def test_multiple_declarations_require_unique_spec_ids():
+    source = '@spec("first")\ndef parse(): ...\n@spec("second")\ndef parse(): ...\n'
+    try:
+        specgen.extract_file(source, "parse.py")
+    except ValueError as exc:
+        assert "each @spec must set a unique id" in str(exc)
+    else:
+        raise AssertionError("expected an ambiguous symbol error")
+
+
+def test_cli_reports_ambiguous_spec_ids(tmp_path, capsys):
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "a.py").write_text(
+        '@spec("first")\ndef parse(): ...\n@spec("second")\ndef parse(): ...\n'
+    )
+    assert specgen.main([str(src)]) == 1
+    assert "each @spec must set a unique id" in capsys.readouterr().err
 
 
 def test_syntax_error_is_empty():
@@ -121,7 +163,7 @@ def test_markers_are_noops():
     def fn():
         return 1
 
-    assert spec_case.spec("x")(fn) is fn
+    assert spec_case.spec("x", id="named")(fn) is fn
     assert spec_case.case("id", "d", expect="200")(fn) is fn
     assert spec_case.link("docs/x.md")(fn) is fn
     assert spec_case.rule("watch X")(fn) is fn

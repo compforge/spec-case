@@ -13,18 +13,22 @@
         "typescript": "fixture.ts::Service.run"
       },
       "expected_entry": {
-        "spec": "does useful work",
-        "cases": [
+        "specs": [
           {
-            "id": "happy",
-            "desc": "succeeds",
-            "input": "minimal",
-            "expect": "ok",
-            "forbid": "duplicate"
+            "spec": "does useful work",
+            "cases": [
+              {
+                "id": "happy",
+                "desc": "succeeds",
+                "input": "minimal",
+                "expect": "ok",
+                "forbid": "duplicate"
+              }
+            ],
+            "links": ["docs/design.md"],
+            "rules": ["preserve ordering"]
           }
-        ],
-        "links": ["docs/design.md"],
-        "rules": ["preserve ordering"]
+        ]
       }
     },
     {
@@ -40,8 +44,23 @@
         "typescript": "fixture.ts::run"
       },
       "expected_entry": {
-        "spec": "contract only",
-        "cases": []
+        "specs": [{ "spec": "contract only", "cases": [] }]
+      }
+    },
+    {
+      "name": "named_spec_keeps_authored_identity",
+      "source": {
+        "python": "@spec(\"string contract\", id=\"string_input\")\ndef run(): ...\n",
+        "go": "package fixture\n\n// +spec:id=string_input,text=`string contract`\nfunc Run() {}\n",
+        "typescript": "/** @spec id=string_input,text=`string contract` */\nfunction run(): void {}\n"
+      },
+      "symbol": {
+        "python": "fixture.py::run",
+        "go": "fixture.go::Run",
+        "typescript": "fixture.ts::run"
+      },
+      "expected_entry": {
+        "specs": [{ "id": "string_input", "spec": "string contract", "cases": [] }]
       }
     },
     {

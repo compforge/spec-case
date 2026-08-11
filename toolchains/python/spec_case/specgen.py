@@ -60,6 +60,7 @@ def _entry_for(node: ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef) -> d
     a class (a type-wide usage constraint, e.g. "per-request only") is extracted
     just like a function's."""
     spec_text = ""
+    spec_id: str | None = None
     cases: list[dict] = []
     links: list[str] = []
     rules: list[str] = []
@@ -70,6 +71,11 @@ def _entry_for(node: ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef) -> d
         assert isinstance(dec, ast.Call)  # _marker_name only matches Calls
         if name == "spec":
             spec_text = _str(_arg(dec, 0))
+            id_node = _kw(dec, "id")
+            if id_node is not None:
+                spec_id = _str(id_node)
+                if not _CASE_ID_PATTERN.fullmatch(spec_id):
+                    raise ValueError(f"invalid spec id {spec_id!r}")
         elif name == "case":
             cid = _str(_arg(dec, 0))
             if not _CASE_ID_PATTERN.fullmatch(cid):
@@ -93,7 +99,9 @@ def _entry_for(node: ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef) -> d
 
     if not (spec_text or cases or links or rules):
         return None
-    entry: dict = {"cases": cases}  # schema requires `cases` (may be empty)
+    entry: dict = {"cases": cases}  # each spec contract requires `cases` (may be empty)
+    if spec_id is not None:
+        entry["id"] = spec_id
     if spec_text:
         entry["spec"] = spec_text
     if links:
@@ -108,9 +116,25 @@ def _emit(out: dict, entry: dict | None, relpath: str, qual: str, module_prefix:
     the dotted fqn (module_prefix.qual) when the module is importable."""
     if entry is None:
         return
-    if module_prefix:
-        entry["fqn"] = f"{module_prefix}.{qual}"
-    out[f"{relpath}::{qual}"] = entry
+    symbol_id = f"{relpath}::{qual}"
+    existing = out.get(symbol_id)
+    if existing is None:
+        symbol_entry = {"specs": [entry]}
+        if module_prefix:
+            symbol_entry["fqn"] = f"{module_prefix}.{qual}"
+        out[symbol_id] = symbol_entry
+        return
+
+    spec_id = entry.get("id")
+    existing_specs = existing["specs"]
+    if spec_id is None or any(item.get("id") is None for item in existing_specs):
+        raise ValueError(
+            f"multiple marked declarations resolve to {symbol_id!r}; "
+            "each @spec must set a unique id"
+        )
+    if any(item["id"] == spec_id for item in existing_specs):
+        raise ValueError(f"duplicate spec id {spec_id!r} for {symbol_id!r}")
+    existing_specs.append(entry)
 
 
 def _visit(node: ast.AST, stack: list[str], relpath: str, out: dict, module_prefix: str) -> None:
@@ -144,7 +168,7 @@ def _module_prefix(path: Path) -> str:
 def extract_file(src: str, relpath: str, module_prefix: str = "") -> dict:
     """Extract the spec.json entries from one Python source string, keyed by
     symbol-id. module_prefix (the file's dotted module) fills each entry's
-    fqn. Returns {} on a syntax error (specgen never fails the build)."""
+    fqn. Returns {} on a syntax error; ambiguous or invalid spec ids fail."""
     try:
         tree = ast.parse(src)
     except SyntaxError:
@@ -181,7 +205,11 @@ def main(argv: list[str]) -> int:
 
     src = Path(ns.src).resolve()
     root = Path(ns.root).resolve() if ns.root else src
-    index = extract_tree(src, root)
+    try:
+        index = extract_tree(src, root)
+    except ValueError as exc:
+        print(f"specgen: {exc}", file=sys.stderr)
+        return 1
 
     if ns.check:
         return _check(ns.out, index)

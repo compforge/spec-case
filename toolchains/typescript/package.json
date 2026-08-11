@@ -1,6 +1,6 @@
 {
   "name": "@compforge/spec-case",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "TypeScript spec/case/rule/link markers and the specgen static extractor.",
   "type": "module",
   "license": "Apache-2.0",

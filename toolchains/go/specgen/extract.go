@@ -30,13 +30,19 @@ type Case struct {
 	Forbid string `json:"forbid,omitempty"`
 }
 
-// Entry is one symbol's spec.json entry (keyed by its symbol-id).
-type Entry struct {
-	Fqn   string   `json:"fqn,omitempty"` // importpath.Symbol — location-independent id for cross-repo refs
+// Spec is one contract bound to a code symbol.
+type Spec struct {
+	ID    string   `json:"id,omitempty"`
 	Spec  string   `json:"spec,omitempty"`
 	Cases []Case   `json:"cases"` // required by the schema; may be empty
 	Links []string `json:"links,omitempty"`
 	Rules []string `json:"rules,omitempty"`
+}
+
+// Entry is one symbol's spec.json entry (keyed by its symbol-id).
+type Entry struct {
+	Fqn   string `json:"fqn,omitempty"` // importpath.Symbol — location-independent id for cross-repo refs
+	Specs []Spec `json:"specs"`
 }
 
 // parseMarkers scans a doc comment (of a function or a type) for the markers and
@@ -47,18 +53,22 @@ func parseMarkers(doc *ast.CommentGroup) (Entry, bool) {
 		lines = append(lines, c.Text)
 	}
 	parsed := marker.Parse(strings.Join(lines, "\n"))
-	e := Entry{
+	s := Spec{
+		ID:    parsed.SpecID,
 		Spec:  parsed.Spec,
 		Cases: make([]Case, 0, len(parsed.Cases)),
 		Links: parsed.Links,
 		Rules: parsed.Rules,
 	}
 	for _, c := range parsed.Cases {
-		e.Cases = append(e.Cases, Case{
+		s.Cases = append(s.Cases, Case{
 			ID: c.ID, Desc: c.Desc, Input: c.Input, Expect: c.Expect, Forbid: c.Forbid,
 		})
 	}
-	return e, e.Spec != "" || len(e.Cases) > 0 || len(e.Links) > 0 || len(e.Rules) > 0
+	if s.Spec == "" && len(s.Cases) == 0 && len(s.Links) == 0 && len(s.Rules) == 0 {
+		return Entry{}, false
+	}
+	return Entry{Specs: []Spec{s}}, true
 }
 
 // symbolOf returns a function's symbol: "Name" for a free function, "Recv.Method"

@@ -31,3 +31,10 @@ func TestParseAndIntentHash(t *testing.T) {
 		t.Fatal("expectation change must alter executable intent hash")
 	}
 }
+
+func TestParseNamedSpec(t *testing.T) {
+	parsed := Parse("// +spec:id=string_input,text=`accepts strings`")
+	if parsed.SpecID != "string_input" || parsed.Spec != "accepts strings" {
+		t.Fatalf("Parse() = %+v", parsed)
+	}
+}

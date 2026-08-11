@@ -53,7 +53,15 @@ export async function main(args: readonly string[]): Promise<number> {
   }
   const source = path.resolve(options.source);
   const root = path.resolve(options.root ?? source);
-  const index = await extractTree(source, root);
+  let index;
+  try {
+    index = await extractTree(source, root);
+  } catch (error) {
+    console.error(
+      `specgen: ${error instanceof Error ? error.message : String(error)}`,
+    );
+    return 1;
+  }
   if (options.check) {
     return check(options.output, index);
   }

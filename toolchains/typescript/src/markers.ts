@@ -4,6 +4,10 @@ export interface CaseOptions {
   forbid?: string;
 }
 
+export interface SpecOptions {
+  id?: string;
+}
+
 /** A no-op decorator accepted on classes and class methods. */
 export interface SymbolDecorator {
   <Class extends abstract new (...args: never[]) => unknown>(
@@ -21,7 +25,10 @@ export interface SymbolDecorator {
 
 const NOOP_DECORATOR = (() => undefined) as SymbolDecorator;
 
-export function Spec(_text: string): SymbolDecorator {
+export function Spec(
+  _text: string,
+  _options: SpecOptions = {},
+): SymbolDecorator {
   return NOOP_DECORATOR;
 }
 

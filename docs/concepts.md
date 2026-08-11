@@ -10,7 +10,8 @@ spec-case 是**绑定到代码的 spec/case 资产的真源**——它自己定�
 - **case**：挂在某个 spec 上的一条可复用激励 + 各判定面判据（`id` / `input` / `judge.<face>`）。
 - **unit**：评审的最小作用域（一个函数的改动切片）。它是 **case 的评审侧孪生**——case 是"喂给被测系统的激励"，unit 是"被评审的那段代码"，二者通过同一个符号（**symbol-id**）对上。
 
-关系：**一个符号 0..1 个 spec、0..N 个 case**。
+关系：**一个符号 0..N 个 spec、每个 spec 0..N 个 case**。单个 spec 的 `id` 可省略；同一 symbol
+存在多个 spec 时，每个 spec 必须提供唯一 `id`。symbol-id 始终只标识代码符号。
 
 ## case 模型
 
@@ -50,7 +51,7 @@ case 是可积累、可共享的 git 资产。一个 case 文件是一个 **Case
 
 四个维度合起来，就是 ccr 为一个改动函数收集的**四类上下文**——评审时"diff→func→收齐 spec/case/rule/link（能拿到多少逐步迭代）"：
 
-关系：**一个符号 0..1 spec、0..N case、0..N link、0..N rule**。
+关系：**一个 symbol 有 0..N spec binding，每个 binding 有 0..N case、0..N link、0..N rule**。
 
 ## 双消费：黑盒 vs 白盒
 
@@ -87,13 +88,18 @@ spec-case 把代码优先这条的**产物绑定**钉死：标记落在哪个符
 ```jsonc
 {
   "internal/notebook/handler.go::Service.CreateNotebook": {
-    "spec": "tenant/user header 必填；(tenant,user,name) 唯一，重复→ConflictError",
-    "cases": [
-      { "id": "happy_minimal",  "desc": "只传 Name 应创建成功", "expect": "201; id 非空" },
-      { "id": "duplicate_name", "desc": "重复 Name",          "expect": "409 ConflictError" }
+    "specs": [
+      {
+        "spec": "tenant/user header 必填；(tenant,user,name) 唯一，重复→ConflictError",
+        "cases": [
+          { "id": "happy_minimal",  "desc": "只传 Name 应创建成功", "expect": "201; id 非空" },
+          { "id": "duplicate_name", "desc": "重复 Name",          "expect": "409 ConflictError" }
+        ]
+      }
     ]
   }
 }
 ```
 
-`ccr` 拿到改动函数的 symbol-id → 查 `spec.json` → 把 `spec` + 该函数的 `cases` 作为 checklist 注入。schema 见 [`spec/spec-json.schema.json`](../spec/spec-json.schema.json)。
+所有 entry 统一使用 `specs[]`；消费者按 symbol-id 查一次，再读取其中全部契约。schema 见
+[`spec/spec-json.schema.json`](../spec/spec-json.schema.json)。

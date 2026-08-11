@@ -33,18 +33,22 @@ class Service {
 test("extracts decorators from methods", () => {
   const out = extractFile(DECORATOR_SAMPLE, "src/service.ts");
   assert.deepEqual(out["src/service.ts::Service.run"], {
-    cases: [
+    specs: [
       {
-        id: "happy",
-        desc: "succeeds",
-        input: "minimal",
-        expect: "ok",
-        forbid: "duplicate",
+        cases: [
+          {
+            id: "happy",
+            desc: "succeeds",
+            input: "minimal",
+            expect: "ok",
+            forbid: "duplicate",
+          },
+        ],
+        spec: "does useful work",
+        links: ["docs/design.md"],
+        rules: ["preserve ordering"],
       },
     ],
-    spec: "does useful work",
-    links: ["docs/design.md"],
-    rules: ["preserve ordering"],
   });
 });
 
@@ -62,15 +66,87 @@ export function createNotebook(): void {}
 export const loadNotebook = async (): Promise<void> => {};
 `;
   const out = extractFile(source, "src/notebook.ts");
-  assert.equal(out["src/notebook.ts::createNotebook"]?.spec, "creates a notebook");
+  const create = out["src/notebook.ts::createNotebook"]?.specs[0];
+  assert.equal(create?.spec, "creates a notebook");
+  assert.equal(create?.cases[0]?.id, "duplicate_name");
+  assert.deepEqual(create?.links, ["docs/tenancy.md"]);
   assert.equal(
-    out["src/notebook.ts::createNotebook"]?.cases[0]?.id,
-    "duplicate_name",
+    out["src/notebook.ts::loadNotebook"]?.specs[0]?.spec,
+    "loads a notebook",
   );
-  assert.deepEqual(out["src/notebook.ts::createNotebook"]?.links, [
-    "docs/tenancy.md",
-  ]);
-  assert.equal(out["src/notebook.ts::loadNotebook"]?.spec, "loads a notebook");
+});
+
+test("uses spec ids to distinguish overload contracts", () => {
+  const source = `
+/**
+ * @spec id=string_input,text=\`parses string input\`
+ * @case id=empty_string,desc=\`empty input\`,expect=\`empty output\`
+ */
+export function parse(value: string): string;
+/** @spec id=number_input,text=\`parses number input\` */
+export function parse(value: number): number;
+export function parse(value: string | number): string | number { return value; }
+`;
+  const out = extractFile(source, "src/parse.ts");
+  assert.deepEqual(out["src/parse.ts::parse"], {
+    specs: [
+      {
+        id: "string_input",
+        cases: [
+          {
+            id: "empty_string",
+            desc: "empty input",
+            expect: "empty output",
+          },
+        ],
+        spec: "parses string input",
+      },
+      {
+        id: "number_input",
+        cases: [],
+        spec: "parses number input",
+      },
+    ],
+  });
+});
+
+test("requires ids when multiple declarations carry specs", () => {
+  const source = `
+/** @spec first overload */
+export function parse(value: string): string;
+/** @spec second overload */
+export function parse(value: number): number;
+export function parse(value: string | number): string | number { return value; }
+`;
+  assert.throws(
+    () => extractFile(source, "src/parse.ts"),
+    /each @spec must set a unique id/u,
+  );
+});
+
+test("rejects duplicate spec ids for one symbol", () => {
+  const source = `
+/** @spec id=input,text=\`parses string input\` */
+export function parse(value: string): string;
+/** @spec id=input,text=\`parses number input\` */
+export function parse(value: number): number;
+export function parse(value: string | number): string | number { return value; }
+`;
+  assert.throws(
+    () => extractFile(source, "src/parse.ts"),
+    /duplicate spec id "input" for "src\/parse\.ts::parse"/u,
+  );
+});
+
+test("rejects an invalid spec id", () => {
+  const source = `
+/** @spec id=String-Input,text=\`parses string input\` */
+export function parse(value: string): string { return value; }
+`;
+  assert.throws(
+    () => extractFile(source, "src/parse.ts"),
+    /invalid spec id "String-Input" for "src\/parse\.ts::parse"/u,
+  );
 });
 
 test("extracts JSDoc markers from types and interface methods", () => {
@@ -84,11 +160,11 @@ export interface NotebookStore {
 }
 `;
   const out = extractFile(source, "src/types.ts");
-  assert.deepEqual(out["src/types.ts::RequestCache"]?.rules, [
+  assert.deepEqual(out["src/types.ts::RequestCache"]?.specs[0]?.rules, [
     "request scoped only",
   ]);
   assert.equal(
-    out["src/types.ts::NotebookStore.get"]?.spec,
+    out["src/types.ts::NotebookStore.get"]?.specs[0]?.spec,
     "returns undefined when absent",
   );
 });
@@ -127,6 +203,26 @@ test("marker decorators do not replace classes or methods", () => {
   assert.equal(new Example().run(), 1);
 });
 
+test("decorator Spec accepts an explicit spec id", () => {
+  const source = `
+class Service {
+  @Spec("looks up by string", { id: "string_input" })
+  lookup(value: string): string { return value; }
+}
+`;
+  assert.deepEqual(extractFile(source, "src/service.ts")[
+    "src/service.ts::Service.lookup"
+  ], {
+    specs: [
+      {
+        id: "string_input",
+        cases: [],
+        spec: "looks up by string",
+      },
+    ],
+  });
+});
+
 test("extracts trees and detects drift", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "spec-case-ts-"));
   const source = path.join(root, "src");
@@ -136,7 +232,7 @@ test("extracts trees and detects drift", async () => {
     "/** @spec stable */\nexport function run(): void {}\n",
   );
   const index = await extractTree(source, root);
-  assert.equal(index["src/a.ts::run"]?.spec, "stable");
+  assert.equal(index["src/a.ts::run"]?.specs[0]?.spec, "stable");
 
   const output = path.join(root, "spec.json");
   await writeFile(output, canonical(index));

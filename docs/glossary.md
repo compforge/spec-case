@@ -2,7 +2,7 @@
 
 | 术语 | 定义 |
 |------|------|
-| **spec** | 一个代码符号（函数）的意图/契约，自然语言。一个符号 0..1 个 spec。 |
+| **spec** | 一个代码符号（函数）的意图/契约，自然语言。单个时 `id` 可省略；同一 symbol 有多个时必须以唯一 `id` 区分。 |
 | **case** | 一条可积累、可复用的激励 + 各判定面判据（`id` / `input` / `judge.<face>`）。挂在某 spec 上，一个 spec 0..N 个 case。 |
 | **case_id** | case 在所属 CaseSet 内唯一、不可变的主键，格式 `^[a-z][a-z0-9_]*$`。跨运行/跨判定面对齐用。 |
 | **CaseSet** | 一个 case 文件：`caseset` 标识 + `sources` + `facet_schema` + `cases`。可共享的 git 资产。 |
@@ -19,5 +19,5 @@
 | **scope** | harness 无关的运行单元名（run 目录首段）。 |
 | **check** | run 级断言门（对聚合/切片指标的 pass/fail），与 per-case 判定是不同的判定单元。 |
 | **case_hash** | 对 case 身份字段（id/input/facets/requires/judge）的稳定 hash；含义变才漂。用于检测过期产物。 |
-| **spec.json** | `specgen` 的生成态产物，按 symbol-id 索引 `{spec, cases[]}`。`ccr` 的 `SpecBuilder` 入口。 |
+| **spec.json** | `specgen` 的生成态产物，按 symbol-id 索引 `{fqn?, specs[]}`。`ccr` 的 `SpecBuilder` 入口。 |
 | **specgen** | 语言相关的静态抽取器：扫代码标记（AST）→ 编译成 case + `spec.json`。按本仓契约实现，不在本仓内。 |

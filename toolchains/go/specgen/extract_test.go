@@ -77,23 +77,24 @@ func TestExtractMarkers(t *testing.T) {
 	if !ok {
 		t.Fatalf("missing CreateNotebook; got %v", sortedKeys(out))
 	}
-	if !strings.Contains(e.Spec, "ConflictError") {
-		t.Errorf("spec: %q", e.Spec)
+	s := e.Specs[0]
+	if !strings.Contains(s.Spec, "ConflictError") {
+		t.Errorf("spec: %q", s.Spec)
 	}
-	if len(e.Cases) != 2 || e.Cases[0].ID != "happy" || e.Cases[1].ID != "dup" {
-		t.Fatalf("cases: %+v", e.Cases)
+	if len(s.Cases) != 2 || s.Cases[0].ID != "happy" || s.Cases[1].ID != "dup" {
+		t.Fatalf("cases: %+v", s.Cases)
 	}
-	if e.Cases[0].Expect != "201; id non-empty" { // semicolon inside backticks survives
-		t.Errorf("expect: %q", e.Cases[0].Expect)
+	if s.Cases[0].Expect != "201; id non-empty" { // semicolon inside backticks survives
+		t.Errorf("expect: %q", s.Cases[0].Expect)
 	}
-	if e.Cases[1].Forbid != "a second row is written" {
-		t.Errorf("forbid: %q", e.Cases[1].Forbid)
+	if s.Cases[1].Forbid != "a second row is written" {
+		t.Errorf("forbid: %q", s.Cases[1].Forbid)
 	}
-	if len(e.Links) != 1 || e.Links[0] != "docs/tenancy.md" {
-		t.Errorf("links: %v", e.Links)
+	if len(s.Links) != 1 || s.Links[0] != "docs/tenancy.md" {
+		t.Errorf("links: %v", s.Links)
 	}
-	if len(e.Rules) != 1 {
-		t.Errorf("rules: %v", e.Rules)
+	if len(s.Rules) != 1 {
+		t.Errorf("rules: %v", s.Rules)
 	}
 	if _, ok := out["app/api.go::Unmarked"]; ok {
 		t.Error("unmarked func should be absent")
@@ -124,17 +125,18 @@ func TestExtractTypeLevelMarkers(t *testing.T) {
 		t.Fatalf("missing PhaseEventMiddleware; got %v", sortedKeys(out))
 	}
 	// all four markers bind to the type symbol-id
-	if !strings.Contains(e.Spec, "per-run events") {
-		t.Errorf("spec: %q", e.Spec)
+	s := e.Specs[0]
+	if !strings.Contains(s.Spec, "per-run events") {
+		t.Errorf("spec: %q", s.Spec)
 	}
-	if len(e.Cases) != 1 || e.Cases[0].ID != "reuse_leaks" {
-		t.Errorf("cases: %+v", e.Cases)
+	if len(s.Cases) != 1 || s.Cases[0].ID != "reuse_leaks" {
+		t.Errorf("cases: %+v", s.Cases)
 	}
-	if len(e.Links) != 1 || e.Links[0] != "docs/middleware.md" {
-		t.Errorf("links: %v", e.Links)
+	if len(s.Links) != 1 || s.Links[0] != "docs/middleware.md" {
+		t.Errorf("links: %v", s.Links)
 	}
-	if len(e.Rules) != 1 || !strings.Contains(e.Rules[0], "per-request only") {
-		t.Errorf("rules: %v", e.Rules)
+	if len(s.Rules) != 1 || !strings.Contains(s.Rules[0], "per-request only") {
+		t.Errorf("rules: %v", s.Rules)
 	}
 	if _, ok := out["mw/trace.go::Grouped"]; !ok {
 		t.Errorf("grouped type decl marker missing; got %v", sortedKeys(out))
@@ -190,7 +192,7 @@ func TestMalformedCaseIDSkipped(t *testing.T) {
 func TestSpecOnlyHasEmptyCases(t *testing.T) {
 	out := ExtractFile("package p\n\n// +spec=`x`\nfunc f() {}\n", "f.go")
 	e := out["f.go::f"]
-	if e.Spec != "x" || e.Cases == nil || len(e.Cases) != 0 {
+	if len(e.Specs) != 1 || e.Specs[0].Spec != "x" || e.Specs[0].Cases == nil || len(e.Specs[0].Cases) != 0 {
 		t.Errorf("spec-only entry must have empty non-nil cases: %+v", e)
 	}
 }
