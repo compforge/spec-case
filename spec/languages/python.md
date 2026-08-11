@@ -19,7 +19,8 @@ async def create_notebook(req: CreateReq) -> Notebook:
     ...
 ```
 
-- `@spec(text)` — 0..1 个，该函数的契约前言（被它所有 case 共享）。
+- `@spec(text, *, id=None)` — 该 symbol 的契约前言；单个时 id 可省略，同一 symbol 的多个声明
+  （如 `typing.overload`）分别维护契约时必须提供唯一 id。
 - `@case(id, desc, *, input="", expect="", forbid="", group=...)` — 0..N 个，`id` 必填且 `^[a-z][a-z0-9_]*$`，`desc` 必填；`input` / `expect` / `forbid` 自然语言，build-time 编译成结构化 `input` / `judge`。
 - `@link(ref)` — 0..N 个，作者策展的"改它时该顺带看的东西"：`ref` = 仓库相对 **md 路径** 或 **symbol-id**（另一函数），靠有没有 `::` 区分。见 [概念](../docs/concepts.md#link)。
 - `@rule(text)` — 0..N 个，**审查准则**（评审它时盯什么），是 `rule.json` 路径级准则的共置细化；rule 是 reviewer 指令、不是代码已满足的契约（那是 spec）。见 [概念](../docs/concepts.md#rule)。
@@ -52,10 +53,14 @@ class PhaseEventMiddleware:
 // spec.json 片段
 {
   "app/notebook/api.py::create_notebook": {
-    "spec": "notebook 创建接口: tenant/user header 必填; (tenant,user,name) 唯一，重复创建返回 ConflictError",
-    "cases": [
-      { "id": "happy_minimal",  "desc": "只传 Name 应创建成功", "expect": "201; body.id 非空" },
-      { "id": "duplicate_name", "desc": "重复 Name", "expect": "409", "forbid": "写入第二条记录" }
+    "specs": [
+      {
+        "spec": "notebook 创建接口: tenant/user header 必填; (tenant,user,name) 唯一，重复创建返回 ConflictError",
+        "cases": [
+          { "id": "happy_minimal",  "desc": "只传 Name 应创建成功", "expect": "201; body.id 非空" },
+          { "id": "duplicate_name", "desc": "重复 Name", "expect": "409", "forbid": "写入第二条记录" }
+        ]
+      }
     ]
   }
 }

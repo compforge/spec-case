@@ -23,6 +23,19 @@ class Service {
 }
 ```
 
+TypeScript overload 需要分别维护契约时，给 `spec` 配置同一 symbol 内唯一的 `id`：
+
+```typescript
+/** @spec id=string_input,text=`looks up string input` */
+export function get(value: string): string;
+/** @spec id=number_input,text=`looks up numeric input` */
+export function get(value: number): number;
+export function get(value: string | number): string | number;
+```
+
+decorator 对应写法为 `@Spec("looks up string input", { id: "string_input" })`。所有 entry 都输出
+`specs[]`；只有一个 spec 时 `id` 可省略，同一 symbol 的多个 spec 必须全部配置唯一 id。
+
 普通 function、function-valued variable 和纯类型 symbol 使用 JSDoc marker，无需运行时 import。完整语法
 与 symbol-id 规则见 [`spec/languages/typescript.md`](../../spec/languages/typescript.md)。
 

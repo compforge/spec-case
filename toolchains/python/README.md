@@ -31,6 +31,10 @@ from spec_case import spec, case, link, rule
 def create_notebook(req): ...
 ```
 
+单个 spec 的 `id` 可省略。`typing.overload` 等同一 symbol 多声明场景可用
+`@spec("...", id="string_input")` 区分；多个 spec 必须全部提供唯一 id。`specgen` 始终输出
+统一的 `{fqn?, specs[]}` entry。
+
 `spec_case` is zero-dependency (pure stdlib) and tiny, so taking it as a regular
 runtime dependency is cheap. Because the decorators apply at **import time**, the
 package must be importable anywhere the annotated module is imported (production

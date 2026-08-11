@@ -19,8 +19,8 @@ def _identity(fn: F) -> F:
     return fn
 
 
-def spec(text: str) -> Callable[[F], F]:
-    """The symbol's (function / method / class) contract preamble (0..1), shared by all its cases."""
+def spec(text: str, *, id: str | None = None) -> Callable[[F], F]:
+    """A symbol contract. ``id`` distinguishes multiple contracts on one symbol."""
     return _identity
 
 

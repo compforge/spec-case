@@ -2,47 +2,67 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/compforge/spec-case/spec/spec-json.schema.json",
   "title": "spec.json",
-  "description": "The generated artifact produced by specgen and ingested by ccr's SpecBuilder. Indexed by symbol-id.",
+  "description": "The generated artifact produced by specgen and ingested by contract consumers. Indexed by symbol-id.",
   "type": "object",
+  "definitions": {
+    "case": {
+      "type": "object",
+      "required": ["id"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "desc": { "type": "string" },
+        "input": { "type": "string", "description": "NL request shape." },
+        "expect": { "type": "string", "description": "NL expected outcome." },
+        "forbid": { "type": "string", "description": "NL what must not happen." }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "required": ["cases"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "Optional authored identity within one symbol. Required and unique when that symbol carries multiple specs."
+        },
+        "spec": {
+          "type": "string",
+          "description": "The contract preamble in natural language. May be absent when only cases, links, or rules exist."
+        },
+        "cases": {
+          "type": "array",
+          "description": "Cases governed by this spec.",
+          "items": { "$ref": "#/definitions/case" }
+        },
+        "links": {
+          "type": "array",
+          "description": "Author-curated see-also references for this spec.",
+          "items": { "type": "string" }
+        },
+        "rules": {
+          "type": "array",
+          "description": "Review criteria attached to this spec.",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  },
   "additionalProperties": {
     "type": "object",
-    "description": "The spec + cases bound to one code symbol (the key is its symbol-id).",
-    "required": ["cases"],
+    "required": ["specs"],
     "additionalProperties": false,
     "properties": {
       "fqn": {
         "type": "string",
-        "description": "The symbol's language-native fully-qualified name, such as a Python dotted import path or Go import-path.Symbol. The symbol-id key stays repo-relative; fqn is the location-independent identity a consumer repo resolves a cross-repo reference to. Optional: each toolchain emits it only when the language's package identity can be resolved reliably."
+        "description": "The symbol's language-native fully-qualified name when the toolchain can resolve one reliably."
       },
-      "spec": {
-        "type": "string",
-        "description": "The symbol's contract preamble (natural language). May be empty if only cases exist."
-      },
-      "cases": {
+      "specs": {
         "type": "array",
-        "description": "Cases hanging off this symbol — the per-function review checklist.",
-        "items": {
-          "type": "object",
-          "required": ["id"],
-          "additionalProperties": false,
-          "properties": {
-            "id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
-            "desc": { "type": "string" },
-            "input": { "type": "string", "description": "NL request shape." },
-            "expect": { "type": "string", "description": "NL expected outcome." },
-            "forbid": { "type": "string", "description": "NL what must not happen." }
-          }
-        }
-      },
-      "links": {
-        "type": "array",
-        "description": "Author-curated 'see also' references for this symbol: each is a repo-relative markdown path or a symbol-id (another function). Reviewers consult them when changing the symbol; the reviewer fetches the content, the link is just the pointer.",
-        "items": { "type": "string" }
-      },
-      "rules": {
-        "type": "array",
-        "description": "Function-level review criteria (what to watch for when reviewing this symbol) — the co-located, fine-grained counterpart to path-glob rule.json. A rule is a reviewer instruction, not a contract the code already satisfies (that is spec).",
-        "items": { "type": "string" }
+        "minItems": 1,
+        "description": "Contracts bound to this code symbol.",
+        "items": { "$ref": "#/definitions/spec" }
       }
     }
   },

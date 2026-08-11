@@ -31,14 +31,24 @@ export interface SpecCase {
   forbid?: string;
 }
 
-export interface SpecEntry {
+export interface SpecContract {
+  id?: string;
   spec?: string;
   cases: SpecCase[];
   links?: string[];
   rules?: string[];
 }
 
+export interface SpecEntry {
+  fqn?: string;
+  specs: SpecContract[];
+}
+
 export type SpecIndex = Record<string, SpecEntry>;
+
+interface PendingSpecEntry extends SpecContract {
+  specId?: string;
+}
 
 function collapseWhitespace(text: string): string {
   return text.split(/\s+/u).filter(Boolean).join(" ");
@@ -141,11 +151,11 @@ function parseMarkerArgs(source: string): Record<string, string> {
   return args;
 }
 
-function emptyEntry(): SpecEntry {
+function emptyEntry(): PendingSpecEntry {
   return { cases: [] };
 }
 
-function hasContent(entry: SpecEntry): boolean {
+function hasContent(entry: SpecContract): boolean {
   return Boolean(
     entry.spec ||
       entry.cases.length > 0 ||
@@ -154,14 +164,14 @@ function hasContent(entry: SpecEntry): boolean {
   );
 }
 
-function appendLink(entry: SpecEntry, ref: string): void {
+function appendLink(entry: SpecContract, ref: string): void {
   if (ref === "") {
     return;
   }
   (entry.links ??= []).push(ref);
 }
 
-function appendRule(entry: SpecEntry, text: string): void {
+function appendRule(entry: SpecContract, text: string): void {
   if (text === "") {
     return;
   }
@@ -198,7 +208,7 @@ function jsDocLink(tag: ts.JSDocTag): string {
   return (match?.[1] ?? "").trim().replace(/^\.\//u, "");
 }
 
-function applyJSDocMarkers(node: ts.Node, entry: SpecEntry): void {
+function applyJSDocMarkers(node: ts.Node, entry: PendingSpecEntry): void {
   for (const tag of ts.getJSDocTags(node)) {
     const name = JSDOC_MARKERS.get(tag.tagName.text);
     if (name === undefined || tag.comment === undefined) {
@@ -206,7 +216,16 @@ function applyJSDocMarkers(node: ts.Node, entry: SpecEntry): void {
     }
     const comment = name === "link" ? jsDocLink(tag) : jsDocComment(tag);
     if (name === "spec") {
-      if (comment !== "") {
+      if (comment.startsWith("id=")) {
+        const args = parseMarkerArgs(comment);
+        const text = args.text ?? "";
+        if (text !== "") {
+          entry.spec = collapseWhitespace(text);
+        }
+        if (args.id !== undefined) {
+          entry.specId = args.id;
+        }
+      } else if (comment !== "") {
         entry.spec = comment;
       }
     } else if (name === "case") {
@@ -231,7 +250,7 @@ function applyJSDocMarkers(node: ts.Node, entry: SpecEntry): void {
   }
 }
 
-function applyDecoratorMarkers(node: ts.Node, entry: SpecEntry): void {
+function applyDecoratorMarkers(node: ts.Node, entry: PendingSpecEntry): void {
   if (!ts.canHaveDecorators(node)) {
     return;
   }
@@ -248,6 +267,10 @@ function applyDecoratorMarkers(node: ts.Node, entry: SpecEntry): void {
       const text = literalText(call.arguments[0]);
       if (text !== "") {
         entry.spec = text;
+      }
+      const specId = objectString(call.arguments[1], "id");
+      if (specId !== "") {
+        entry.specId = specId;
       }
     } else if (name === "case") {
       const id = literalText(call.arguments[0]);
@@ -274,7 +297,7 @@ function applyDecoratorMarkers(node: ts.Node, entry: SpecEntry): void {
   }
 }
 
-function entryFor(...nodes: ts.Node[]): SpecEntry | undefined {
+function entryFor(...nodes: ts.Node[]): PendingSpecEntry | undefined {
   const entry = emptyEntry();
   for (const node of nodes) {
     applyJSDocMarkers(node, entry);
@@ -311,11 +334,41 @@ function emit(
   out: SpecIndex,
   relpath: string,
   symbol: string,
-  entry: SpecEntry | undefined,
+  entry: PendingSpecEntry | undefined,
 ): void {
-  if (entry !== undefined) {
-    out[`${relpath}::${symbol}`] = entry;
+  if (entry === undefined) {
+    return;
   }
+  const symbolId = `${relpath}::${symbol}`;
+  const { specId, ...contract } = entry;
+  const existing = out[symbolId];
+  if (specId !== undefined && !CASE_ID_PATTERN.test(specId)) {
+    throw new Error(
+      `invalid spec id ${JSON.stringify(specId)} for ${JSON.stringify(symbolId)}`,
+    );
+  }
+  const named: SpecContract = {
+    ...(specId === undefined ? {} : { id: specId }),
+    ...contract,
+  };
+  if (existing === undefined) {
+    out[symbolId] = { specs: [named] };
+    return;
+  }
+  if (
+    specId === undefined ||
+    existing.specs.some((item) => item.id === undefined)
+  ) {
+    throw new Error(
+      `multiple marked declarations resolve to ${JSON.stringify(symbolId)}; each @spec must set a unique id`,
+    );
+  }
+  if (existing.specs.some((item) => item.id === specId)) {
+    throw new Error(
+      `duplicate spec id ${JSON.stringify(specId)} for ${JSON.stringify(symbolId)}`,
+    );
+  }
+  existing.specs.push(named);
 }
 
 function visitClass(

@@ -11,7 +11,7 @@ import (
 func TestRunCheck(t *testing.T) {
 	dir := t.TempDir()
 	out := filepath.Join(dir, "spec.json")
-	index := map[string]specgen.Entry{"a.go::F": {Spec: "x", Cases: []specgen.Case{}}}
+	index := map[string]specgen.Entry{"a.go::F": {Specs: []specgen.Spec{{Spec: "x", Cases: []specgen.Case{}}}}}
 
 	data, _ := canonical(index)
 	if err := os.WriteFile(out, data, 0o644); err != nil {
@@ -21,11 +21,11 @@ func TestRunCheck(t *testing.T) {
 	if rc := runCheck(out, index); rc != 0 {
 		t.Errorf("identical index should be up to date, rc=%d want 0", rc)
 	}
-	renamed := map[string]specgen.Entry{"a.go::G": {Spec: "x", Cases: []specgen.Case{}}}
+	renamed := map[string]specgen.Entry{"a.go::G": {Specs: []specgen.Spec{{Spec: "x", Cases: []specgen.Case{}}}}}
 	if rc := runCheck(out, renamed); rc != 1 {
 		t.Errorf("renamed symbol should drift, rc=%d want 1", rc)
 	}
-	changed := map[string]specgen.Entry{"a.go::F": {Spec: "y", Cases: []specgen.Case{}}}
+	changed := map[string]specgen.Entry{"a.go::F": {Specs: []specgen.Spec{{Spec: "y", Cases: []specgen.Case{}}}}}
 	if rc := runCheck(out, changed); rc != 1 {
 		t.Errorf("changed markers should drift, rc=%d want 1", rc)
 	}

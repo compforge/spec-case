@@ -28,10 +28,11 @@ type Case struct {
 
 // Document is the marker intent attached to one Go symbol.
 type Document struct {
-	Spec  string
-	Cases []Case
-	Links []string
-	Rules []string
+	SpecID string
+	Spec   string
+	Cases  []Case
+	Links  []string
+	Rules  []string
 }
 
 // Parse reads canonical marker lines from a Go doc comment. It accepts text
@@ -42,6 +43,12 @@ func Parse(doc string) Document {
 	for _, raw := range strings.Split(doc, "\n") {
 		line := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(raw), "//"))
 		switch {
+		case strings.HasPrefix(line, "+spec:"):
+			args := parseArgs(strings.TrimPrefix(line, "+spec:"))
+			if id := args["id"]; id == "" || caseIDPattern.MatchString(id) {
+				out.SpecID = id
+				out.Spec = args["text"]
+			}
 		case strings.HasPrefix(line, "+spec="):
 			out.Spec = unquote(strings.TrimPrefix(line, "+spec="))
 		case strings.HasPrefix(line, "+case:"):

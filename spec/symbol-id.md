@@ -102,6 +102,15 @@ TypeScript 的 `symbol` 使用声明名或外层 binding name；namespace、clas
 - **WHEN** namespace `Notebook` 内声明 function `create(...)`
 - **THEN** symbol-id = `src/notebook.ts::Notebook.create`
 
+#### Scenario: overload 的命名 spec
+
+- **WHEN** 多个 TypeScript overload 声明计算出同一个 symbol-id
+- **AND** 作者需要为这些声明分别维护契约
+- **THEN** 每个声明通过 `Spec.id` 提供同一 symbol 内唯一的 spec id
+- **AND** symbol-id 仍由源码结构生成，不因 spec id 改变
+- **AND** `spec.json` 在该 symbol-id 下以 `specs[]` 保存命名契约
+- **AND** 多个 spec 缺少 id 或 id 重复时，`specgen` 必须报错
+
 ### Requirement: 基于符号、不基于行号
 
 symbol-id 必须只由路径 + 符号决定，不含行号。
@@ -121,10 +130,11 @@ symbol-id 必须只由路径 + 符号决定，不含行号。
 
 在一个仓库快照内，symbol-id 必须唯一。
 
-#### Scenario: 重载/同名
+#### Scenario: 无法区分的同名绑定
 
-- **WHEN** 同一文件存在会产生相同 `<relpath>::<symbol>` 的两个符号（理论上的命名碰撞）
-- **THEN** `specgen` 必须报错而非静默合并——契约要求 symbol 规范能区分二者；不能区分即视为该语言规范的缺陷，需在本 spec 补充
+- **WHEN** 同一文件存在会产生相同 `<relpath>::<symbol>` 的多个带 marker 声明
+- **AND** 该语言没有定义同一 symbol 下的命名 spec 机制，或声明没有提供唯一 spec id
+- **THEN** `specgen` 必须报错而非静默覆盖
 
 ### Requirement: 消费契约
 
@@ -133,5 +143,6 @@ symbol-id 必须只由路径 + 符号决定，不含行号。
 #### Scenario: ccr 查表
 
 - **WHEN** `ccr` 的 `UnitSplitter` 把一个改动函数解析出 symbol-id `U`
-- **THEN** `SpecBuilder` 用 `U` 在 `spec.json` 查到 `{spec, cases[]}`
+- **THEN** `SpecBuilder` 用 `U` 在 `spec.json` 查到 `{fqn?, specs[]}`
+- **AND** `specs[]` 中每个元素都属于同一个代码 symbol；只有一个时 `id` 可省略，多个时 `id` 必须唯一
 - **AND** 查不到 = 该函数无 spec/case（合法，跳过，不报错）
