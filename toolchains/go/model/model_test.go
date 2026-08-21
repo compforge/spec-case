@@ -1,6 +1,7 @@
 package model
 
 import (
+	"encoding/json"
 	"os"
 	"testing"
 )
@@ -18,7 +19,8 @@ func TestLoadAndValidateCanonicalConformanceCaseSet(t *testing.T) {
 	}
 	item := cases.Cases[0]
 	if item.ID != "answer_document" || item.Facets["topic"] != "retrieval" ||
-		item.Binding == nil || item.Binding.SymbolID != "internal/api/answer.go::Handler.Answer" {
+		item.Binding == nil || item.Binding.SymbolID != "internal/api/answer.go::Handler.Answer" ||
+		item.Binding.SpecID == nil || *item.Binding.SpecID != "grounded_answer" {
 		t.Fatalf("Case = %+v", item)
 	}
 	if len(item.Judge["e2e"]) == 0 || len(item.Judge["eval"]) == 0 {
@@ -37,6 +39,7 @@ func TestValidateRejectsBrokenReferencesAndVocabulary(t *testing.T) {
 		{"facet value", func(cases *CaseSet) { cases.Cases[0].Facets["difficulty"] = "medium" }},
 		{"judge face", func(cases *CaseSet) { cases.Cases[0].Judge["taste"] = map[string]any{} }},
 		{"binding", func(cases *CaseSet) { cases.Cases[0].Binding.SymbolID = "missing-delimiter" }},
+		{"binding spec id", func(cases *CaseSet) { cases.Cases[0].Binding.SpecID = stringPointer("Bad-ID") }},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -49,6 +52,25 @@ func TestValidateRejectsBrokenReferencesAndVocabulary(t *testing.T) {
 				t.Fatal("Validate accepted an invalid CaseSet")
 			}
 		})
+	}
+}
+
+func TestBindingSpecIDJSONRoundTrip(t *testing.T) {
+	original := Binding{
+		SymbolID: "internal/api/answer.go::Handler.Answer",
+		SpecID:   stringPointer("grounded_answer"),
+		Spec:     "Answers use the selected document.",
+	}
+	data, err := json.Marshal(original)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var decoded Binding
+	if err := json.Unmarshal(data, &decoded); err != nil {
+		t.Fatal(err)
+	}
+	if decoded.SpecID == nil || *decoded.SpecID != "grounded_answer" {
+		t.Fatalf("Binding after JSON round-trip = %+v", decoded)
 	}
 }
 

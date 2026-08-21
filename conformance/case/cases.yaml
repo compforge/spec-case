@@ -19,4 +19,5 @@ cases:
       eval: {ground_truth: hello}
     binding:
       symbol_id: internal/api/answer.go::Handler.Answer
+      spec_id: grounded_answer
       spec: Answers use the selected document.

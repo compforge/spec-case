@@ -50,6 +50,7 @@ def test_shared_cross_language_conformance_caseset():
     assert cs.cases[0].binding == C.Binding(
         symbol_id="internal/api/answer.go::Handler.Answer",
         spec="Answers use the selected document.",
+        spec_id="grounded_answer",
     )
 
 

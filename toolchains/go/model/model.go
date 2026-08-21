@@ -40,8 +40,9 @@ func (s Source) Key() string {
 }
 
 type Binding struct {
-	SymbolID string `yaml:"symbol_id" json:"symbol_id"`
-	Spec     string `yaml:"spec,omitempty" json:"spec,omitempty"`
+	SymbolID string  `yaml:"symbol_id" json:"symbol_id"`
+	SpecID   *string `yaml:"spec_id,omitempty" json:"spec_id,omitempty"`
+	Spec     string  `yaml:"spec,omitempty" json:"spec,omitempty"`
 }
 
 type Case struct {
@@ -163,6 +164,9 @@ func Validate(cases CaseSet) error {
 		}
 		if item.Binding != nil && !symbolIDPattern.MatchString(item.Binding.SymbolID) {
 			return fmt.Errorf("case %s: invalid binding symbol_id %q", item.ID, item.Binding.SymbolID)
+		}
+		if item.Binding != nil && item.Binding.SpecID != nil && !caseIDPattern.MatchString(*item.Binding.SpecID) {
+			return fmt.Errorf("case %s: invalid binding spec_id %q", item.ID, *item.Binding.SpecID)
 		}
 	}
 	return nil
