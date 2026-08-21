@@ -2,9 +2,14 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from spec_case import model as C
+
+
+CONFORMANCE_CASESET = Path(__file__).parents[3] / "conformance" / "case" / "cases.yaml"
 
 
 def _raw(**over) -> dict:
@@ -36,6 +41,16 @@ def test_from_raw_shape():
     assert c.facets == {"difficulty": "easy"} and c.requires == ["doc1"]
     assert c.judge == {"eval": {"ground_truth": "Paris"}}
     C.validate(cs)  # the happy set passes
+
+
+def test_shared_cross_language_conformance_caseset():
+    cs = C.load_caseset(CONFORMANCE_CASESET)
+    C.validate(cs)
+    assert cs.caseset == "canonical-model"
+    assert cs.cases[0].binding == C.Binding(
+        symbol_id="internal/api/answer.go::Handler.Answer",
+        spec="Answers use the selected document.",
+    )
 
 
 def test_binding_round_trip():
