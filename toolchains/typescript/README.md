@@ -1,12 +1,22 @@
 # spec-case (TypeScript)
 
-TypeScript 的 **spec / case / link / rule** markers 与静态 `specgen`。它把绑定到代码 symbol 的
-decorator 或 JSDoc marker 编译成 `spec.json`，供 `ccr` 和其它 spec-case 消费方使用。
+TypeScript 的 canonical CaseSet runtime，以及 **spec / case / link / rule** markers 与静态
+`specgen`。CaseSet runtime 供 e2e / eval / perf 等 Harness 读取同一份资产；specgen 把绑定到代码
+symbol 的 decorator 或 JSDoc marker 编译成 `spec.json`。
 
 ## 安装
 
 ```bash
 npm install @compforge/spec-case
+```
+
+读取并校验可同时交给 Eval 与 Perf 的 CaseSet：
+
+```typescript
+import { loadCaseSet, validateCaseSet } from "@compforge/spec-case/model";
+
+const cases = loadCaseSet("cases/ordinary-chat.yaml");
+validateCaseSet(cases);
 ```
 
 class 和 method 可以使用 no-op decorators：

@@ -39,7 +39,7 @@ vocabulary, bind to a `symbol-id`, compile into `spec.json`, and can be checked 
 ```bash
 pip install spec-case          # markers + specgen only, zero deps
 pip install 'spec-case[model]' # + canonical Case model (pydantic, pyyaml)
-npm install @compforge/spec-case # TypeScript markers + specgen
+npm install @compforge/spec-case # TypeScript CaseSet runtime + markers + specgen
 ```
 
 ## Status

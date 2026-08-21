@@ -19,7 +19,7 @@ spec-case 是**绑定到代码的 spec/case 资产的共享真源**，被两类�
 - `conformance/` — ★ **跨语言行为契约**：所有 specgen 实现共同消费的 fixture。
 - `toolchains/python/` — Python marker 包、canonical Case model 与 `specgen`。
 - `toolchains/go/` — Go marker grammar（`marker/`）、`specgen` 投影（`specgen/`）与 `cmd/specgen` 工具。
-- `toolchains/typescript/` — TypeScript decorator / JSDoc marker 包与基于 Compiler API 的 `specgen`。
+- `toolchains/typescript/` — TypeScript canonical CaseSet runtime、decorator / JSDoc marker 与基于 Compiler API 的 `specgen`。
 - 三个 specgen 都带 `--check`：比对 committed `spec.json` vs 当前 marker，漂移（重命名/删除/marker 改动）则报差异 + 非零退出——CI 漂移门。
 
 ## 关键约定
