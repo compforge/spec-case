@@ -33,7 +33,7 @@ vocabulary, bind to a `symbol-id`, compile into `spec.json`, and can be checked 
 - `spec/` — normative schemas, the symbol-id contract, and per-language marker grammars
 - `conformance/` — shared behavior fixtures every language toolchain must pass
 - `toolchains/python/` — the pip package: markers, `specgen`, and the optional canonical Case model
-- `toolchains/go/` — the Go `specgen` implementation
+- `toolchains/go/` — Go `specgen` plus the importable canonical `model` package
 - `toolchains/typescript/` — TypeScript decorators, JSDoc markers, and the Compiler API `specgen`
 
 ```bash

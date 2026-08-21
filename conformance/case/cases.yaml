@@ -1,0 +1,23 @@
+caseset: canonical-model
+focus: Cross-language canonical CaseSet loading and validation.
+schema_version: 1
+facets:
+  difficulty: {values: [easy, hard], ordered: true}
+  topic: {open: true}
+sources:
+  - {name: inline_doc, content: hello}
+cases:
+  - id: answer_document
+    desc: Answer from the declared document.
+    input: {query: "What does the document say?"}
+    facets: {difficulty: easy, topic: retrieval}
+    requires: [inline_doc]
+    judge:
+      e2e:
+        assert:
+          - {path: body.answer, op: eq, value: hello}
+      eval: {ground_truth: hello}
+    binding:
+      symbol_id: internal/api/answer.go::Handler.Answer
+      spec_id: grounded_answer
+      spec: Answers use the selected document.
