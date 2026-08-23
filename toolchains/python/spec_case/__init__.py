@@ -1,8 +1,8 @@
-"""spec-case (Python): the in-code spec/case/rule/link markers projects import,
+"""spec-case (Python): the in-code spec/case/why/rule/link markers projects import,
 plus `specgen` — the static extractor that compiles them into spec.json (the
 artifact ccr's SpecBuilder consumes).
 
-    from spec_case import spec, case, link, rule
+    from spec_case import spec, case, why, link, rule
 
     @spec("(tenant, name) unique; duplicate create -> ConflictError")
     @case("dup", "duplicate name", expect="409", forbid="a second row is written")
@@ -14,4 +14,4 @@ from .markers import case as case
 from .markers import link as link
 from .markers import rule as rule
 from .markers import spec as spec
-
+from .markers import why as why

@@ -6,6 +6,7 @@ const CASE_ID_PATTERN = /^[a-z][a-z0-9_]*$/;
 const JSDOC_MARKERS = new Map([
   ["spec", "spec"],
   ["case", "case"],
+  ["why", "why"],
   ["link", "link"],
   ["see", "link"],
   ["rule", "rule"],
@@ -13,6 +14,7 @@ const JSDOC_MARKERS = new Map([
 const DECORATOR_MARKERS = new Map([
   ["Spec", "spec"],
   ["Case", "case"],
+  ["Why", "why"],
   ["Link", "link"],
   ["Rule", "rule"],
 ]);
@@ -35,6 +37,7 @@ export interface SpecContract {
   id?: string;
   spec?: string;
   cases: SpecCase[];
+  whys?: string[];
   links?: string[];
   rules?: string[];
 }
@@ -159,6 +162,7 @@ function hasContent(entry: SpecContract): boolean {
   return Boolean(
     entry.spec ||
       entry.cases.length > 0 ||
+      entry.whys?.length ||
       entry.links?.length ||
       entry.rules?.length,
   );
@@ -169,6 +173,13 @@ function appendLink(entry: SpecContract, ref: string): void {
     return;
   }
   (entry.links ??= []).push(ref);
+}
+
+function appendWhy(entry: SpecContract, text: string): void {
+  if (text === "") {
+    return;
+  }
+  (entry.whys ??= []).push(text);
 }
 
 function appendRule(entry: SpecContract, text: string): void {
@@ -242,6 +253,8 @@ function applyJSDocMarkers(node: ts.Node, entry: PendingSpecEntry): void {
         }
       }
       entry.cases.push(item);
+    } else if (name === "why") {
+      appendWhy(entry, comment);
     } else if (name === "link") {
       appendLink(entry, comment);
     } else if (name === "rule") {
@@ -289,6 +302,8 @@ function applyDecoratorMarkers(node: ts.Node, entry: PendingSpecEntry): void {
         }
       }
       entry.cases.push(item);
+    } else if (name === "why") {
+      appendWhy(entry, literalText(call.arguments[0]));
     } else if (name === "link") {
       appendLink(entry, literalText(call.arguments[0]));
     } else if (name === "rule") {

@@ -11,7 +11,7 @@ from spec_case import specgen  # noqa: E402
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 
 SAMPLE = '''
-from spec_case import spec, case, link, rule
+from spec_case import spec, case, why, link, rule
 
 @spec("""
 notebook create:
@@ -20,6 +20,7 @@ notebook create:
 """)
 @case("happy", "name only succeeds", expect="201")
 @case("dup", "duplicate name", expect="409", forbid="a second row is written")
+@why("database uniqueness is the cross-replica authority")
 @link("docs/tenancy.md")
 @rule("hot path: watch new sync DB calls")
 def create_notebook(req):
@@ -51,13 +52,14 @@ def test_extract_markers():
     assert [c["id"] for c in e["cases"]] == ["happy", "dup"]
     assert e["cases"][0]["desc"] == "name only succeeds"
     assert e["cases"][1]["forbid"] == "a second row is written"
+    assert e["whys"] == ["database uniqueness is the cross-replica authority"]
     assert e["links"] == ["docs/tenancy.md"]
     assert e["rules"] == ["hot path: watch new sync DB calls"]
 
     # a method binds to <relpath>::Class.method
     assert out["app/api.py::Svc.get"]["specs"][0]["cases"][0]["id"] == "ok"
 
-    # all four markers bind to a class symbol-id <relpath>::Class (type-level)
+    # all markers bind to a class symbol-id <relpath>::Class (type-level)
     cls = out["app/api.py::PhaseEventMiddleware"]["specs"][0]
     assert cls["spec"] == "accumulates per-run events; instances hold state"
     assert [c["id"] for c in cls["cases"]] == ["reuse_leaks"]
@@ -111,6 +113,13 @@ def test_entry_always_has_cases():
     # a spec-only function still emits the (schema-required) cases array, empty
     out = specgen.extract_file('@spec("x")\ndef f(): ...\n', "f.py")
     assert out["f.py::f"] == {"specs": [{"cases": [], "spec": "x"}]}
+
+
+def test_why_can_exist_without_spec():
+    out = specgen.extract_file('@why("stable keys keep retries idempotent")\ndef f(): ...\n', "f.py")
+    assert out["f.py::f"] == {
+        "specs": [{"cases": [], "whys": ["stable keys keep retries idempotent"]}]
+    }
 
 
 def test_spec_id_distinguishes_multiple_declarations():
@@ -167,6 +176,7 @@ def test_markers_are_noops():
     assert spec_case.case("id", "d", expect="200")(fn) is fn
     assert spec_case.link("docs/x.md")(fn) is fn
     assert spec_case.rule("watch X")(fn) is fn
+    assert spec_case.why("chosen for idempotent retries")(fn) is fn
 
 
 def _gen(tmp_path, body):
