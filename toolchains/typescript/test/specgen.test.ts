@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { Case, Link, Rule, Spec } from "../src/markers.js";
+import { Case, Link, Rule, Spec, Why } from "../src/markers.js";
 import { canonical, check, extractFile, extractTree } from "../src/specgen.js";
 
 interface ConformanceFixture {
@@ -24,6 +24,7 @@ class Service {
     expect: "ok",
     forbid: "duplicate",
   })
+  @Why("database uniqueness is the cross-replica authority")
   @Link("docs/design.md")
   @Rule("preserve ordering")
   run(): void {}
@@ -45,6 +46,7 @@ test("extracts decorators from methods", () => {
           },
         ],
         spec: "does useful work",
+        whys: ["database uniqueness is the cross-replica authority"],
         links: ["docs/design.md"],
         rules: ["preserve ordering"],
       },
@@ -57,6 +59,7 @@ test("extracts JSDoc markers from ordinary functions and function values", () =>
 /**
  * @spec creates a notebook
  * @case id=duplicate_name,desc="duplicate",expect="409",forbid="second row"
+ * @why database uniqueness is the cross-replica authority
  * @see {@link ./docs/tenancy.md}
  * @rule watch synchronous DB calls
  */
@@ -69,6 +72,9 @@ export const loadNotebook = async (): Promise<void> => {};
   const create = out["src/notebook.ts::createNotebook"]?.specs[0];
   assert.equal(create?.spec, "creates a notebook");
   assert.equal(create?.cases[0]?.id, "duplicate_name");
+  assert.deepEqual(create?.whys, [
+    "database uniqueness is the cross-replica authority",
+  ]);
   assert.deepEqual(create?.links, ["docs/tenancy.md"]);
   assert.equal(
     out["src/notebook.ts::loadNotebook"]?.specs[0]?.spec,
@@ -105,6 +111,21 @@ export function parse(value: string | number): string | number { return value; }
         id: "number_input",
         cases: [],
         spec: "parses number input",
+      },
+    ],
+  });
+});
+
+test("why can exist without a spec", () => {
+  const source = `
+/** @why stable keys keep retries idempotent */
+export function run(): void {}
+`;
+  assert.deepEqual(extractFile(source, "src/run.ts")["src/run.ts::run"], {
+    specs: [
+      {
+        cases: [],
+        whys: ["stable keys keep retries idempotent"],
       },
     ],
   });
@@ -196,6 +217,7 @@ test("marker decorators do not replace classes or methods", () => {
     @Spec("returns one")
     @Case("happy", "returns one")
     @Link("docs/example.md")
+    @Why("the stable key keeps retries idempotent")
     run(): number {
       return 1;
     }

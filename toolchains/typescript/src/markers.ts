@@ -40,6 +40,10 @@ export function Case(
   return NOOP_DECORATOR;
 }
 
+export function Why(_text: string): SymbolDecorator {
+  return NOOP_DECORATOR;
+}
+
 export function Link(_ref: string): SymbolDecorator {
   return NOOP_DECORATOR;
 }

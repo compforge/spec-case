@@ -10,6 +10,7 @@ A **spec** states the intent/contract of a code symbol. A CaseSet **case** is a 
 - `ccr` **attaches** the white-box projection to a changed review **unit** as a per-function checklist.
 
 A review **unit** is the review-side twin of a `case`: same "requirement/contract" asset, two consumers.
+`why`, `rule`, and `link` are white-box structured intent; they compile into `spec.json` and do not alter the black-box CaseSet.
 
 ## Structured intent annotations
 
@@ -17,7 +18,8 @@ Think of spec-case markers as **structured comments bound to code symbols** — 
 structured intent annotations. They preserve the reasoning that cannot be recovered reliably from
 the implementation alone, while keeping it addressable and machine-readable:
 
-- `spec` records what the code is intended to guarantee and why the contract exists.
+- `spec` records what the code is intended to guarantee.
+- `why` records why the symbol uses its current design, ordering, or boundary when code only reveals how.
 - `rule` records what a future change or review must keep in mind.
 - `link` points to the design context or related symbol that explains the intent.
 - `case` adds a concrete validation scenario when one is worth preserving; it is optional.

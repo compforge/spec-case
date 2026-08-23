@@ -3,9 +3,9 @@
     {
       "name": "full_symbol_entry",
       "source": {
-        "python": "class Service:\n    @spec(\"does useful work\")\n    @case(\"happy\", \"succeeds\", input=\"minimal\", expect=\"ok\", forbid=\"duplicate\")\n    @link(\"docs/design.md\")\n    @rule(\"preserve ordering\")\n    def run(self): ...\n",
-        "go": "package fixture\n\n// +spec=`does useful work`\n// +case:id=happy,desc=`succeeds`,input=`minimal`,expect=`ok`,forbid=`duplicate`\n// +link=docs/design.md\n// +rule=`preserve ordering`\nfunc (s *Service) Run() {}\n",
-        "typescript": "class Service {\n  @Spec(\"does useful work\")\n  @Case(\"happy\", \"succeeds\", { input: \"minimal\", expect: \"ok\", forbid: \"duplicate\" })\n  @Link(\"docs/design.md\")\n  @Rule(\"preserve ordering\")\n  run(): void {}\n}\n"
+        "python": "class Service:\n    @spec(\"does useful work\")\n    @case(\"happy\", \"succeeds\", input=\"minimal\", expect=\"ok\", forbid=\"duplicate\")\n    @why(\"independent loops can starve each other\")\n    @why(\"one owner keeps capacity decisions ordered\")\n    @link(\"docs/design.md\")\n    @rule(\"preserve ordering\")\n    def run(self): ...\n",
+        "go": "package fixture\n\n// +spec=`does useful work`\n// +case:id=happy,desc=`succeeds`,input=`minimal`,expect=`ok`,forbid=`duplicate`\n// +why=`independent loops can starve each other`\n// +why=`one owner keeps capacity decisions ordered`\n// +link=docs/design.md\n// +rule=`preserve ordering`\nfunc (s *Service) Run() {}\n",
+        "typescript": "class Service {\n  @Spec(\"does useful work\")\n  @Case(\"happy\", \"succeeds\", { input: \"minimal\", expect: \"ok\", forbid: \"duplicate\" })\n  @Why(\"independent loops can starve each other\")\n  @Why(\"one owner keeps capacity decisions ordered\")\n  @Link(\"docs/design.md\")\n  @Rule(\"preserve ordering\")\n  run(): void {}\n}\n"
       },
       "symbol": {
         "python": "fixture.py::Service.run",
@@ -26,7 +26,32 @@
               }
             ],
             "links": ["docs/design.md"],
-            "rules": ["preserve ordering"]
+            "rules": ["preserve ordering"],
+            "whys": [
+              "independent loops can starve each other",
+              "one owner keeps capacity decisions ordered"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "why_can_exist_without_spec",
+      "source": {
+        "python": "@why(\"the stable key keeps retries idempotent\")\ndef run(): ...\n",
+        "go": "package fixture\n\n// +why=`the stable key keeps retries idempotent`\nfunc Run() {}\n",
+        "typescript": "/** @why the stable key keeps retries idempotent */\nfunction run(): void {}\n"
+      },
+      "symbol": {
+        "python": "fixture.py::run",
+        "go": "fixture.go::Run",
+        "typescript": "fixture.ts::run"
+      },
+      "expected_entry": {
+        "specs": [
+          {
+            "cases": [],
+            "whys": ["the stable key keeps retries idempotent"]
           }
         ]
       }

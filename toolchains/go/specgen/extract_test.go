@@ -65,6 +65,7 @@ func TestExtractMarkers(t *testing.T) {
 		"// +spec=`(tenant,name) unique; dup -> ConflictError`\n" +
 		"// +case:id=happy,desc=`name only`,expect=`201; id non-empty`\n" +
 		"// +case:id=dup,desc=`duplicate name`,expect=`409`,forbid=`a second row is written`\n" +
+		"// +why=`database uniqueness is the cross-replica authority`\n" +
 		"// +link=docs/tenancy.md\n" +
 		"// +rule=`hot path: watch new sync DB calls`\n" +
 		"func (s *Service) CreateNotebook(req Req) error { return nil }\n\n" +
@@ -89,6 +90,9 @@ func TestExtractMarkers(t *testing.T) {
 	}
 	if s.Cases[1].Forbid != "a second row is written" {
 		t.Errorf("forbid: %q", s.Cases[1].Forbid)
+	}
+	if len(s.Whys) != 1 || !strings.Contains(s.Whys[0], "cross-replica") {
+		t.Errorf("whys: %v", s.Whys)
 	}
 	if len(s.Links) != 1 || s.Links[0] != "docs/tenancy.md" {
 		t.Errorf("links: %v", s.Links)
@@ -124,7 +128,7 @@ func TestExtractTypeLevelMarkers(t *testing.T) {
 	if !ok {
 		t.Fatalf("missing PhaseEventMiddleware; got %v", sortedKeys(out))
 	}
-	// all four markers bind to the type symbol-id
+	// all markers bind to the type symbol-id
 	s := e.Specs[0]
 	if !strings.Contains(s.Spec, "per-run events") {
 		t.Errorf("spec: %q", s.Spec)
@@ -194,6 +198,14 @@ func TestSpecOnlyHasEmptyCases(t *testing.T) {
 	e := out["f.go::f"]
 	if len(e.Specs) != 1 || e.Specs[0].Spec != "x" || e.Specs[0].Cases == nil || len(e.Specs[0].Cases) != 0 {
 		t.Errorf("spec-only entry must have empty non-nil cases: %+v", e)
+	}
+}
+
+func TestWhyOnlyHasEmptyCases(t *testing.T) {
+	out := ExtractFile("package p\n\n// +why=`stable keys keep retries idempotent`\nfunc f() {}\n", "f.go")
+	s := out["f.go::f"].Specs[0]
+	if len(s.Whys) != 1 || s.Cases == nil || len(s.Cases) != 0 {
+		t.Errorf("why-only entry = %+v", s)
 	}
 }
 

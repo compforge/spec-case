@@ -33,11 +33,21 @@ case 是可积累、可共享的 git 资产。一个 case 文件是一个 **Case
 一份命名契约。单 spec 的 `spec_id` 可省略，与 `spec.json` 的 `specs[].id` 规则一致（见
 [symbol-id 契约](../spec/symbol-id.md)）。
 
+## why
+
+第三个挂在符号上的维度：代码已经表达 **how**，why 保存无法从实现稳定还原的**设计理由**——为什么选择
+当前结构、顺序或边界，以及它避免了什么失败模式。
+
+- why 是解释，不是规范：`spec` 回答"必须保证什么"，`why` 回答"为什么这样实现"。
+- why 不是 reviewer 指令：需要后续评审执行的动作写成 `rule`。
+- why 可以不依附任何 spec 独立存在；只要理由仍由该 symbol 拥有，就和代码共置。
+- 跨多个 symbol 的长篇架构决策仍由设计文档或 ADR 承载，why 只保留稳定摘要并用 `link` 指向正文。
+
 ## link
 
-第三个挂在符号上的维度（和 spec/case 正交，借笔记软件的双链）：一个函数声明**改它时该顺带看的东西**——一篇设计 md，或另一个函数。
+第四个挂在符号上的维度（和 spec/case/why 正交，借笔记软件的双链）：一个函数声明**改它时该顺带看的东西**——一篇设计 md，或另一个函数。
 
-- **spec** 答"这个 func 的契约"，**case** 答"具体场景 checklist"，**link** 答"改它时还该看哪"。
+- **spec** 答"这个 func 的契约"，**case** 答"具体场景 checklist"，**why** 答"为什么选择当前实现"，**link** 答"改它时还该看哪"。
 - link 是**作者策展的高信号上下文**，区别于自动发现（如 caller 上溯）——把"动 `create_notebook` 时记得 `update_notebook` 要保持一致"这种部落知识编码进代码，正中"改完不敢保证没坏"。
 - 一个引用 `<ref>` = 仓库相对 **md 路径** 或 **symbol-id**（另一函数），靠有没有 `::` 区分。
 - 消费方（ccr）注入的是**指针**，内容**按需取**（fetch 那篇 md / 查那个 func 的 spec）——link 只标"该看什么"，不预塞内容。
@@ -45,15 +55,17 @@ case 是可积累、可共享的 git 资产。一个 case 文件是一个 **Case
 
 ## rule
 
-第四个挂在符号上的维度：函数级**审查准则**——评审这个函数时**该盯什么**。
+第五个挂在符号上的维度：函数级**审查准则**——评审这个函数时**该盯什么**。
 
 - 它是 `rule.json`（路径级、glob、dir 级粗准则）的**共置细化版**：写在函数上，只管这个函数。
 - 和 spec 别混：**spec = 代码保证什么（契约/事实）**；**rule = 评审时盯什么（reviewer 指令，不一定是代码已满足的事实）**。例：spec=`不跨 tenant`；rule=`这个 handler 在热路径，盯新增的同步 DB 调用`。
 - 消费方（ccr）的 `RuleBuilder` 同时吃两路：函数级 `rule`（走 spec.json）+ 路径级 `rule.json`（走现有 resolver）。
 
-四个维度合起来，就是 ccr 为一个改动函数收集的**四类上下文**——评审时"diff→func→收齐 spec/case/rule/link（能拿到多少逐步迭代）"：
+五个维度合起来，就是 ccr 为一个改动函数收集的**五类上下文**——评审时"diff→func→收齐 spec/case/why/rule/link（能拿到多少逐步迭代）"：
 
-关系：**一个 symbol 有 0..N spec binding，每个 binding 有 0..N case、0..N link、0..N rule**。
+关系：**一个 symbol 有 0..N spec binding，也有 0..N why；case、link、rule 仍按当前 declaration
+投影分组**。为了兼容统一的 `specs[]` 生成结构，why-only symbol 会生成一个没有 `spec`、但带
+`cases: []` 和 `whys[]` 的 entry。
 
 ## 双消费：黑盒 vs 白盒
 
@@ -80,6 +92,7 @@ case 是可积累、可共享的 git 资产。一个 case 文件是一个 **Case
 3. **build-time 抽取**：NL 标记 → `specgen` 静态扫描（AST）→ 编译成白盒 review 投影 `spec.json`；各语言实现位于 `toolchains/`。
 
 CaseSet 与 `spec.json` 共享 spec/case 词汇和 symbol-id 绑定契约，但面向不同消费者，不是同一种序列化 shape。
+`why` 是代码评审侧的结构化意图，只进入 `spec.json`，不进入黑盒 CaseSet，也不参与 `case_hash`。
 
 spec-case 把代码优先这条的**产物绑定**钉死：标记落在哪个符号上，就生成对应 symbol-id。
 
@@ -93,6 +106,7 @@ spec-case 把代码优先这条的**产物绑定**钉死：标记落在哪个符
     "specs": [
       {
         "spec": "tenant/user header 必填；(tenant,user,name) 唯一，重复→ConflictError",
+        "whys": ["数据库唯一约束是多副本写入的最终权威"],
         "cases": [
           { "id": "happy_minimal",  "desc": "只传 Name 应创建成功", "expect": "201; id 非空" },
           { "id": "duplicate_name", "desc": "重复 Name",          "expect": "409 ConflictError" }

@@ -45,6 +45,11 @@
           "type": "array",
           "description": "Review criteria attached to this spec.",
           "items": { "type": "string" }
+        },
+        "whys": {
+          "type": "array",
+          "description": "Structured rationale that explains why the symbol uses its current design, ordering, or boundary. It may exist without a spec.",
+          "items": { "type": "string" }
         }
       }
     }
