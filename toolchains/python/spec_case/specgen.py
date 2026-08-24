@@ -54,6 +54,19 @@ def _kw(call: ast.Call, name: str) -> ast.expr | None:
     return next((k.value for k in call.keywords if k.arg == name), None)
 
 
+def _valid_link_ref(ref: str) -> bool:
+    prefix = next((item for item in ("repo://", "component://") if ref.startswith(item)), None)
+    if prefix is None:
+        return False
+    target = ref.removeprefix(prefix)
+    if not target or target.startswith("/") or "\\" in target or any(char.isspace() for char in target):
+        return False
+    path, separator, symbol = target.partition("::")
+    if any(not segment or segment in {".", ".."} for segment in path.split("/")):
+        return False
+    return not separator or bool(symbol) and not any(char in symbol for char in ":/\\")
+
+
 def _entry_for(node: ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef) -> dict | None:
     """Build the spec.json entry from a function's or class's decorators, or None
     if it carries no markers. Classes carry the same decorator_list, so a @rule on
@@ -95,7 +108,7 @@ def _entry_for(node: ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef) -> d
             if (text := _str(_arg(dec, 0))):
                 whys.append(text)
         elif name == "link":
-            if (ref := _str(_arg(dec, 0))):
+            if (ref := _str(_arg(dec, 0))) and _valid_link_ref(ref):
                 links.append(ref)
         elif name == "rule":
             if (text := _str(_arg(dec, 0))):

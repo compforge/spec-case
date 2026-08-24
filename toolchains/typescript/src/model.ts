@@ -210,7 +210,7 @@ export function caseSetToRaw(caseSet: CaseSet): Record<string, unknown> {
 
 /**
  * @spec Every Case keeps one stable CaseSet-local id; facets, sources, judge faces, and bindings resolve inside the same canonical asset.
- * @see {@link ../../../spec/case.schema.json}
+ * @see {@link repo://spec/case.schema.json}
  */
 export function validateCaseSet(caseSet: CaseSet): void {
   if (!caseSet.caseset) throw new Error("CaseSet has an empty caseset id");

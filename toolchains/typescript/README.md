@@ -27,7 +27,7 @@ import { Case, Link, Rule, Spec, Why } from "@compforge/spec-case";
 class Service {
   @Spec("returns the notebook when it exists")
   @Case("found", "existing id", { expect: "notebook returned" })
-  @Link("docs/notebook.md")
+  @Link("component://docs/notebook.md")
   @Why("stable keys keep retries idempotent")
   @Rule("keep tenant filtering in the query")
   get(): void {}

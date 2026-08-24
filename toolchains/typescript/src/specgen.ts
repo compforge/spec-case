@@ -169,10 +169,28 @@ function hasContent(entry: SpecContract): boolean {
 }
 
 function appendLink(entry: SpecContract, ref: string): void {
-  if (ref === "") {
+  if (!validLinkRef(ref)) {
     return;
   }
   (entry.links ??= []).push(ref);
+}
+
+function validLinkRef(ref: string): boolean {
+  const prefix = ["repo://", "component://"].find((item) => ref.startsWith(item));
+  if (prefix === undefined) {
+    return false;
+  }
+  const target = ref.slice(prefix.length);
+  if (target === "" || target.startsWith("/") || target.includes("\\") || /\s/u.test(target)) {
+    return false;
+  }
+  const separator = target.indexOf("::");
+  const path = separator === -1 ? target : target.slice(0, separator);
+  const symbol = separator === -1 ? undefined : target.slice(separator + 2);
+  if (path.split("/").some((segment) => segment === "" || segment === "." || segment === "..")) {
+    return false;
+  }
+  return symbol === undefined || (symbol !== "" && !/[:/\\]/u.test(symbol));
 }
 
 function appendWhy(entry: SpecContract, text: string): void {
