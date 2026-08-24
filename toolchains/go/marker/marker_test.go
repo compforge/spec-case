@@ -7,6 +7,7 @@ func TestParseAndIntentHash(t *testing.T) {
 		"// +case:id=happy,desc=`a, b`,input=plain,expect=`200; ok`,group=sandbox\n" +
 		"// +case:id=Bad-ID,desc=skip\n" +
 		"// +why=`stable keys keep retries idempotent`\n" +
+		"// +ideal=`one scheduler owns all capacity decisions`\n" +
 		"// +link=component://docs/api.md\n" +
 		"// +rule=`watch sync I/O`\n"
 
@@ -18,8 +19,8 @@ func TestParseAndIntentHash(t *testing.T) {
 	if c.ID != "happy" || c.Desc != "a, b" || c.Input != "plain" || c.Group != "sandbox" {
 		t.Fatalf("case = %+v", c)
 	}
-	if len(parsed.Whys) != 1 || len(parsed.Links) != 1 || len(parsed.Rules) != 1 {
-		t.Fatalf("whys/links/rules = %+v/%+v/%+v", parsed.Whys, parsed.Links, parsed.Rules)
+	if len(parsed.Whys) != 1 || len(parsed.Ideals) != 1 || len(parsed.Links) != 1 || len(parsed.Rules) != 1 {
+		t.Fatalf("whys/ideals/links/rules = %+v/%+v/%+v/%+v", parsed.Whys, parsed.Ideals, parsed.Links, parsed.Rules)
 	}
 
 	hash := IntentHash(c, parsed.Spec)

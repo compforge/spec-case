@@ -4,6 +4,7 @@
 |------|------|
 | **spec** | 一个代码符号（函数）的意图/契约，自然语言。单个时 `id` 可省略；同一 symbol 有多个时必须以唯一 `id` 区分。 |
 | **why** | 绑定到代码 symbol 的结构化设计理由：解释代码已经展示的 how 为什么采用当前结构、顺序或边界。可不依附 spec 独立存在。 |
+| **ideal** | 绑定到代码 symbol 的理想形态：描述摆脱当前约束后应收敛到什么设计。它不是路线图承诺，可不依附 spec 独立存在。 |
 | **case** | 一条可积累、可复用的激励 + 各判定面判据（`id` / `input` / `judge.<face>`）。挂在某 spec 上，一个 spec 0..N 个 case。 |
 | **case_id** | case 在所属 CaseSet 内唯一、不可变的主键，格式 `^[a-z][a-z0-9_]*$`。跨运行/跨判定面对齐用。 |
 | **CaseSet** | 一个 case 文件：`caseset` 标识 + `sources` + `facet_schema` + `cases`。可共享的 git 资产。 |

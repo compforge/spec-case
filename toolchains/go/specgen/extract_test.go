@@ -66,6 +66,7 @@ func TestExtractMarkers(t *testing.T) {
 		"// +case:id=happy,desc=`name only`,expect=`201; id non-empty`\n" +
 		"// +case:id=dup,desc=`duplicate name`,expect=`409`,forbid=`a second row is written`\n" +
 		"// +why=`database uniqueness is the cross-replica authority`\n" +
+		"// +ideal=`one persistence owner replaces dual writes`\n" +
 		"// +link=component://docs/tenancy.md\n" +
 		"// +rule=`hot path: watch new sync DB calls`\n" +
 		"func (s *Service) CreateNotebook(req Req) error { return nil }\n\n" +
@@ -93,6 +94,9 @@ func TestExtractMarkers(t *testing.T) {
 	}
 	if len(s.Whys) != 1 || !strings.Contains(s.Whys[0], "cross-replica") {
 		t.Errorf("whys: %v", s.Whys)
+	}
+	if len(s.Ideals) != 1 || !strings.Contains(s.Ideals[0], "one persistence owner") {
+		t.Errorf("ideals: %v", s.Ideals)
 	}
 	if len(s.Links) != 1 || s.Links[0] != "component://docs/tenancy.md" {
 		t.Errorf("links: %v", s.Links)
@@ -206,6 +210,14 @@ func TestWhyOnlyHasEmptyCases(t *testing.T) {
 	s := out["f.go::f"].Specs[0]
 	if len(s.Whys) != 1 || s.Cases == nil || len(s.Cases) != 0 {
 		t.Errorf("why-only entry = %+v", s)
+	}
+}
+
+func TestIdealOnlyHasEmptyCases(t *testing.T) {
+	out := ExtractFile("package p\n\n// +ideal=`one scheduler owns all capacity decisions`\nfunc f() {}\n", "f.go")
+	s := out["f.go::f"].Specs[0]
+	if len(s.Ideals) != 1 || s.Cases == nil || len(s.Cases) != 0 {
+		t.Errorf("ideal-only entry = %+v", s)
 	}
 }
 

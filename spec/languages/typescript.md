@@ -7,7 +7,7 @@ TypeScript Compiler API 静态抽取，不 import 或执行被扫描代码。
 ## Decorator 语法
 
 ```typescript
-import { Case, Link, Rule, Spec, Why } from "@compforge/spec-case";
+import { Case, Ideal, Link, Rule, Spec, Why } from "@compforge/spec-case";
 
 class NotebookService {
   @Spec("tenant/user header 必填；同名 notebook 不可重复创建")
@@ -19,6 +19,7 @@ class NotebookService {
     forbid: "写入第二条记录",
   })
   @Why("数据库唯一约束是多副本写入的最终权威")
+  @Ideal("移除兼容双写，由单一持久化 owner 负责")
   @Link("component://docs/tenancy.md")
   @Rule("请求热路径，评审时留意新增的同步 DB 调用")
   async createNotebook(req: CreateRequest): Promise<Notebook> {
@@ -30,6 +31,7 @@ class NotebookService {
 - `@Spec(text, options?)` — symbol 的契约前言；`options.id` 可选，用于区分同一 symbol 的多个契约。
 - `@Case(id, desc, options?)` — 0..N 个；`options` 支持 `input` / `expect` / `forbid`。
 - `@Why(text)` — 0..N 个，解释代码已经展示 how 时，为什么选择当前结构、顺序或边界；可不写 spec 独立存在。
+- `@Ideal(text)` — 0..N 个，描述摆脱当前约束后应收敛到的理想形态；不是 TODO 或路线图承诺，可不写 spec 独立存在。
 - `@Link(ref)` — 0..N 个，使用 `repo://` 或 `component://` 路径锚点指向仓内资产；追加
   `::symbol` 时指向另一代码 symbol。见 [LinkRef 契约](../link-ref.md)。
 - `@Rule(text)` — 0..N 个，修改或使用该 symbol 时应检查的准则。
@@ -47,6 +49,7 @@ decorator 不替换 class 或 method，语义仅由 `specgen` 静态读取。
  * @case id=happy_minimal,desc=`只传 Name 应创建成功`,expect=`201; body.id 非空`
  * @case id=duplicate_name,desc=`重复 Name`,expect=`409`,forbid=`写入第二条记录`
  * @why 数据库唯一约束是多副本写入的最终权威
+ * @ideal 移除兼容双写，由单一持久化 owner 负责
  * @see {@link component://docs/tenancy.md}
  * @rule 请求热路径，评审时留意新增的同步 DB 调用
  */
@@ -57,7 +60,7 @@ export async function createNotebook(
 }
 ```
 
-- `@spec <text>`、`@why <text>`、`@rule <text>` 使用 tag 后的自然语言文本。需要显式 spec id 时写
+- `@spec <text>`、`@why <text>`、`@ideal <text>`、`@rule <text>` 使用 tag 后的自然语言文本。需要显式 spec id 时写
   `@spec id=string_input,text=\`只处理字符串输入\``。
 - `@case key=value,...` 与 Go marker 共用字段词汇；含逗号的值用反引号或双引号包裹，`id` 必须匹配
   `^[a-z][a-z0-9_]*$`。

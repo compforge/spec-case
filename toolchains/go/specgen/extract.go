@@ -1,4 +1,4 @@
-// Command specgen statically extracts the +spec/+case/+why/+link/+rule doc-comment
+// Command specgen statically extracts the +spec/+case/+why/+ideal/+link/+rule doc-comment
 // markers from Go sources into spec.json — the artifact ccr's SpecBuilder
 // consumes. Discovery is pure go/ast analysis: the scanned code is never
 // imported or run, so the markers cost nothing at build time and work even when
@@ -32,12 +32,13 @@ type Case struct {
 
 // Spec is one contract bound to a code symbol.
 type Spec struct {
-	ID    string   `json:"id,omitempty"`
-	Spec  string   `json:"spec,omitempty"`
-	Cases []Case   `json:"cases"` // required by the schema; may be empty
-	Whys  []string `json:"whys,omitempty"`
-	Links []string `json:"links,omitempty"`
-	Rules []string `json:"rules,omitempty"`
+	ID     string   `json:"id,omitempty"`
+	Spec   string   `json:"spec,omitempty"`
+	Cases  []Case   `json:"cases"` // required by the schema; may be empty
+	Whys   []string `json:"whys,omitempty"`
+	Ideals []string `json:"ideals,omitempty"`
+	Links  []string `json:"links,omitempty"`
+	Rules  []string `json:"rules,omitempty"`
 }
 
 // Entry is one symbol's spec.json entry (keyed by its symbol-id).
@@ -55,19 +56,20 @@ func parseMarkers(doc *ast.CommentGroup) (Entry, bool) {
 	}
 	parsed := marker.Parse(strings.Join(lines, "\n"))
 	s := Spec{
-		ID:    parsed.SpecID,
-		Spec:  parsed.Spec,
-		Cases: make([]Case, 0, len(parsed.Cases)),
-		Whys:  parsed.Whys,
-		Links: parsed.Links,
-		Rules: parsed.Rules,
+		ID:     parsed.SpecID,
+		Spec:   parsed.Spec,
+		Cases:  make([]Case, 0, len(parsed.Cases)),
+		Whys:   parsed.Whys,
+		Ideals: parsed.Ideals,
+		Links:  parsed.Links,
+		Rules:  parsed.Rules,
 	}
 	for _, c := range parsed.Cases {
 		s.Cases = append(s.Cases, Case{
 			ID: c.ID, Desc: c.Desc, Input: c.Input, Expect: c.Expect, Forbid: c.Forbid,
 		})
 	}
-	if s.Spec == "" && len(s.Cases) == 0 && len(s.Whys) == 0 && len(s.Links) == 0 && len(s.Rules) == 0 {
+	if s.Spec == "" && len(s.Cases) == 0 && len(s.Whys) == 0 && len(s.Ideals) == 0 && len(s.Links) == 0 && len(s.Rules) == 0 {
 		return Entry{}, false
 	}
 	return Entry{Specs: []Spec{s}}, true

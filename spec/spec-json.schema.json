@@ -34,7 +34,7 @@
         },
         "spec": {
           "type": "string",
-          "description": "The contract preamble in natural language. May be absent when only cases, links, or rules exist."
+          "description": "The contract preamble in natural language. May be absent when only cases, whys, ideals, links, or rules exist."
         },
         "cases": {
           "type": "array",
@@ -54,6 +54,11 @@
         "whys": {
           "type": "array",
           "description": "Structured rationale that explains why the symbol uses its current design, ordering, or boundary. It may exist without a spec.",
+          "items": { "type": "string" }
+        },
+        "ideals": {
+          "type": "array",
+          "description": "The ideal shape this symbol should converge toward when current constraints no longer apply. It is not a roadmap commitment and may exist without a spec.",
           "items": { "type": "string" }
         }
       }

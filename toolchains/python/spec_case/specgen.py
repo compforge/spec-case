@@ -1,4 +1,4 @@
-"""specgen: statically extract the spec/case/why/rule/link markers from Python
+"""specgen: statically extract the spec/case/why/ideal/rule/link markers from Python
 sources into spec.json — the artifact ccr's SpecBuilder consumes.
 
 It parses with `ast` and never imports or runs the target code, so the markers
@@ -21,7 +21,7 @@ import re
 import sys
 from pathlib import Path
 
-_MARKERS = {"spec", "case", "why", "link", "rule"}
+_MARKERS = {"spec", "case", "why", "ideal", "link", "rule"}
 _CASE_ID_PATTERN = re.compile(r"^[a-z][a-z0-9_]*$")
 
 
@@ -76,6 +76,7 @@ def _entry_for(node: ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef) -> d
     spec_id: str | None = None
     cases: list[dict] = []
     whys: list[str] = []
+    ideals: list[str] = []
     links: list[str] = []
     rules: list[str] = []
     for dec in node.decorator_list:
@@ -107,6 +108,9 @@ def _entry_for(node: ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef) -> d
         elif name == "why":
             if (text := _str(_arg(dec, 0))):
                 whys.append(text)
+        elif name == "ideal":
+            if (text := _str(_arg(dec, 0))):
+                ideals.append(text)
         elif name == "link":
             if (ref := _str(_arg(dec, 0))) and _valid_link_ref(ref):
                 links.append(ref)
@@ -114,7 +118,7 @@ def _entry_for(node: ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef) -> d
             if (text := _str(_arg(dec, 0))):
                 rules.append(text)
 
-    if not (spec_text or cases or whys or links or rules):
+    if not (spec_text or cases or whys or ideals or links or rules):
         return None
     entry: dict = {"cases": cases}  # each spec contract requires `cases` (may be empty)
     if spec_id is not None:
@@ -123,6 +127,8 @@ def _entry_for(node: ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef) -> d
         entry["spec"] = spec_text
     if whys:
         entry["whys"] = whys
+    if ideals:
+        entry["ideals"] = ideals
     if links:
         entry["links"] = links
     if rules:
@@ -211,7 +217,7 @@ def extract_tree(src_dir: Path, root: Path) -> dict:
 
 
 def main(argv: list[str]) -> int:
-    ap = argparse.ArgumentParser(prog="specgen", description="Extract spec/case/why/rule/link markers into spec.json.")
+    ap = argparse.ArgumentParser(prog="specgen", description="Extract spec/case/why/ideal/rule/link markers into spec.json.")
     ap.add_argument("src", help="directory to scan for .py files")
     ap.add_argument("-o", "--out", default="-", help="output path (default: stdout)")
     ap.add_argument("--root", default=None, help="repo root for relpath symbol-ids (default: src)")
