@@ -21,7 +21,7 @@ notebook create:
 @case("happy", "name only succeeds", expect="201")
 @case("dup", "duplicate name", expect="409", forbid="a second row is written")
 @why("database uniqueness is the cross-replica authority")
-@link("docs/tenancy.md")
+@link("component://docs/tenancy.md")
 @rule("hot path: watch new sync DB calls")
 def create_notebook(req):
     ...
@@ -33,7 +33,7 @@ class Svc:
 
 @spec("accumulates per-run events; instances hold state")
 @case("reuse_leaks", "reused across requests", forbid="events retained across requests")
-@link("docs/middleware.md")
+@link("repo://docs/middleware.md")
 @rule("per-request only — do not cache/reuse (accumulates unbounded state)")
 class PhaseEventMiddleware:
     def __init__(self):
@@ -53,7 +53,7 @@ def test_extract_markers():
     assert e["cases"][0]["desc"] == "name only succeeds"
     assert e["cases"][1]["forbid"] == "a second row is written"
     assert e["whys"] == ["database uniqueness is the cross-replica authority"]
-    assert e["links"] == ["docs/tenancy.md"]
+    assert e["links"] == ["component://docs/tenancy.md"]
     assert e["rules"] == ["hot path: watch new sync DB calls"]
 
     # a method binds to <relpath>::Class.method
@@ -63,7 +63,7 @@ def test_extract_markers():
     cls = out["app/api.py::PhaseEventMiddleware"]["specs"][0]
     assert cls["spec"] == "accumulates per-run events; instances hold state"
     assert [c["id"] for c in cls["cases"]] == ["reuse_leaks"]
-    assert cls["links"] == ["docs/middleware.md"]
+    assert cls["links"] == ["repo://docs/middleware.md"]
     assert cls["rules"] == ["per-request only — do not cache/reuse (accumulates unbounded state)"]
     # an unmarked class is absent (Svc has no class-level marker, only a method one)
     assert "app/api.py::Svc" not in out

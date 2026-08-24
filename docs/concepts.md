@@ -49,7 +49,11 @@ case 是可积累、可共享的 git 资产。一个 case 文件是一个 **Case
 
 - **spec** 答"这个 func 的契约"，**case** 答"具体场景 checklist"，**why** 答"为什么选择当前实现"，**link** 答"改它时还该看哪"。
 - link 是**作者策展的高信号上下文**，区别于自动发现（如 caller 上溯）——把"动 `create_notebook` 时记得 `update_notebook` 要保持一致"这种部落知识编码进代码，正中"改完不敢保证没坏"。
-- 一个引用 `<ref>` = 仓库相对 **md 路径** 或 **symbol-id**（另一函数），靠有没有 `::` 区分。
+- 一个引用 `<ref>` 使用显式路径锚点：`repo://` 相对 Repository 根，`component://` 相对当前 symbol
+  所属 Component 根；追加 `::symbol` 时指向另一代码 symbol，否则指向文档等资产。Component 是仓内
+  具有独立 build、验证和发布生命周期的服务组件，其归属由消费方 Project Knowledge 提供；无法确定
+  归属时不得把 `component://` 回退为 `repo://`。完整语法见 [LinkRef 契约](../spec/link-ref.md)。
+- LinkRef 不采用 marker 文件目录相对的 `../` 语义，因此移动代码文件不会悄悄改变 link 的目标。
 - 消费方（ccr）注入的是**指针**，内容**按需取**（fetch 那篇 md / 查那个 func 的 spec）——link 只标"该看什么"，不预塞内容。
 - **双链**：正向（函数自己的 see-also）先做；反向 backlink（谁 link 到我）后续从全量 `links` 建反向索引。
 

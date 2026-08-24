@@ -7,7 +7,7 @@ func TestParseAndIntentHash(t *testing.T) {
 		"// +case:id=happy,desc=`a, b`,input=plain,expect=`200; ok`,group=sandbox\n" +
 		"// +case:id=Bad-ID,desc=skip\n" +
 		"// +why=`stable keys keep retries idempotent`\n" +
-		"// +link=docs/api.md\n" +
+		"// +link=component://docs/api.md\n" +
 		"// +rule=`watch sync I/O`\n"
 
 	parsed := Parse(doc)

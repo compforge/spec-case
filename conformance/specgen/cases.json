@@ -3,9 +3,9 @@
     {
       "name": "full_symbol_entry",
       "source": {
-        "python": "class Service:\n    @spec(\"does useful work\")\n    @case(\"happy\", \"succeeds\", input=\"minimal\", expect=\"ok\", forbid=\"duplicate\")\n    @why(\"independent loops can starve each other\")\n    @why(\"one owner keeps capacity decisions ordered\")\n    @link(\"docs/design.md\")\n    @rule(\"preserve ordering\")\n    def run(self): ...\n",
-        "go": "package fixture\n\n// +spec=`does useful work`\n// +case:id=happy,desc=`succeeds`,input=`minimal`,expect=`ok`,forbid=`duplicate`\n// +why=`independent loops can starve each other`\n// +why=`one owner keeps capacity decisions ordered`\n// +link=docs/design.md\n// +rule=`preserve ordering`\nfunc (s *Service) Run() {}\n",
-        "typescript": "class Service {\n  @Spec(\"does useful work\")\n  @Case(\"happy\", \"succeeds\", { input: \"minimal\", expect: \"ok\", forbid: \"duplicate\" })\n  @Why(\"independent loops can starve each other\")\n  @Why(\"one owner keeps capacity decisions ordered\")\n  @Link(\"docs/design.md\")\n  @Rule(\"preserve ordering\")\n  run(): void {}\n}\n"
+        "python": "class Service:\n    @spec(\"does useful work\")\n    @case(\"happy\", \"succeeds\", input=\"minimal\", expect=\"ok\", forbid=\"duplicate\")\n    @why(\"independent loops can starve each other\")\n    @why(\"one owner keeps capacity decisions ordered\")\n    @link(\"repo://docs/design.md\")\n    @link(\"component://internal/peer.go::Service.Sync\")\n    @rule(\"preserve ordering\")\n    def run(self): ...\n",
+        "go": "package fixture\n\n// +spec=`does useful work`\n// +case:id=happy,desc=`succeeds`,input=`minimal`,expect=`ok`,forbid=`duplicate`\n// +why=`independent loops can starve each other`\n// +why=`one owner keeps capacity decisions ordered`\n// +link=repo://docs/design.md\n// +link=component://internal/peer.go::Service.Sync\n// +rule=`preserve ordering`\nfunc (s *Service) Run() {}\n",
+        "typescript": "class Service {\n  @Spec(\"does useful work\")\n  @Case(\"happy\", \"succeeds\", { input: \"minimal\", expect: \"ok\", forbid: \"duplicate\" })\n  @Why(\"independent loops can starve each other\")\n  @Why(\"one owner keeps capacity decisions ordered\")\n  @Link(\"repo://docs/design.md\")\n  @Link(\"component://internal/peer.go::Service.Sync\")\n  @Rule(\"preserve ordering\")\n  run(): void {}\n}\n"
       },
       "symbol": {
         "python": "fixture.py::Service.run",
@@ -25,7 +25,10 @@
                 "forbid": "duplicate"
               }
             ],
-            "links": ["docs/design.md"],
+            "links": [
+              "repo://docs/design.md",
+              "component://internal/peer.go::Service.Sync"
+            ],
             "rules": ["preserve ordering"],
             "whys": [
               "independent loops can starve each other",
@@ -34,6 +37,20 @@
           }
         ]
       }
+    },
+    {
+      "name": "invalid_link_refs_are_rejected",
+      "source": {
+        "python": "@link(\"../../docs/design.md\")\n@link(\"component://../../docs/design.md\")\ndef run(): ...\n",
+        "go": "package fixture\n\n// +link=../../docs/design.md\n// +link=component://../../docs/design.md\nfunc Run() {}\n",
+        "typescript": "/**\n * @see {@link ../../docs/design.md}\n * @see {@link component://../../docs/design.md}\n */\nfunction run(): void {}\n"
+      },
+      "symbol": {
+        "python": "fixture.py::run",
+        "go": "fixture.go::Run",
+        "typescript": "fixture.ts::run"
+      },
+      "expected_entry": null
     },
     {
       "name": "why_can_exist_without_spec",

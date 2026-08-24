@@ -5,6 +5,11 @@
   "description": "The generated artifact produced by specgen and ingested by contract consumers. Indexed by symbol-id.",
   "type": "object",
   "definitions": {
+    "linkRef": {
+      "type": "string",
+      "pattern": "^(repo|component)://.+$",
+      "description": "An anchored repository-local reference defined by spec/link-ref.md."
+    },
     "case": {
       "type": "object",
       "required": ["id"],
@@ -38,8 +43,8 @@
         },
         "links": {
           "type": "array",
-          "description": "Author-curated see-also references for this spec.",
-          "items": { "type": "string" }
+          "description": "Author-curated anchored see-also references for this spec.",
+          "items": { "$ref": "#/definitions/linkRef" }
         },
         "rules": {
           "type": "array",

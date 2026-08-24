@@ -25,7 +25,7 @@ class Service {
     forbid: "duplicate",
   })
   @Why("database uniqueness is the cross-replica authority")
-  @Link("docs/design.md")
+  @Link("component://docs/design.md")
   @Rule("preserve ordering")
   run(): void {}
 }
@@ -47,7 +47,7 @@ test("extracts decorators from methods", () => {
         ],
         spec: "does useful work",
         whys: ["database uniqueness is the cross-replica authority"],
-        links: ["docs/design.md"],
+        links: ["component://docs/design.md"],
         rules: ["preserve ordering"],
       },
     ],
@@ -60,7 +60,7 @@ test("extracts JSDoc markers from ordinary functions and function values", () =>
  * @spec creates a notebook
  * @case id=duplicate_name,desc="duplicate",expect="409",forbid="second row"
  * @why database uniqueness is the cross-replica authority
- * @see {@link ./docs/tenancy.md}
+ * @see {@link repo://docs/tenancy.md}
  * @rule watch synchronous DB calls
  */
 export function createNotebook(): void {}
@@ -75,7 +75,7 @@ export const loadNotebook = async (): Promise<void> => {};
   assert.deepEqual(create?.whys, [
     "database uniqueness is the cross-replica authority",
   ]);
-  assert.deepEqual(create?.links, ["docs/tenancy.md"]);
+  assert.deepEqual(create?.links, ["repo://docs/tenancy.md"]);
   assert.equal(
     out["src/notebook.ts::loadNotebook"]?.specs[0]?.spec,
     "loads a notebook",
@@ -216,7 +216,7 @@ test("marker decorators do not replace classes or methods", () => {
   class Example {
     @Spec("returns one")
     @Case("happy", "returns one")
-    @Link("docs/example.md")
+    @Link("component://docs/example.md")
     @Why("the stable key keeps retries idempotent")
     run(): number {
       return 1;

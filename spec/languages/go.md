@@ -11,8 +11,8 @@ Go 用**函数上方的 doc-comment 标记**写 spec/case，贴着它断言的�
 // +case:id=happy_minimal,desc=`只传 Name 应创建成功`,expect=`201; body.id 非空`
 // +case:id=duplicate_name,desc=`重复 Name`,expect=`409`,forbid=`写入第二条记录`
 // +why=`数据库唯一约束是多副本写入的最终权威`
-// +link=docs/tenancy.md
-// +link=internal/notebook/handler.go::Service.UpdateNotebook
+// +link=component://docs/tenancy.md
+// +link=component://internal/notebook/handler.go::Service.UpdateNotebook
 // +rule=`这个 handler 在请求热路径，盯新增的同步 DB 调用`
 func (s *Service) CreateNotebook(ctx context.Context, req *CreateReq) (*Notebook, error) {
 ```
@@ -21,7 +21,9 @@ func (s *Service) CreateNotebook(ctx context.Context, req *CreateReq) (*Notebook
   `+spec:id=string_input,text=\`只处理字符串输入\``；单个 spec 的 id 可省略。
 - `+case:...` — 0..N 条，字段 `id`（必填，`^[a-z][a-z0-9_]*$`）、`desc`（必填）、`input` / `expect` / `forbid`（自然语言，build-time 编译成结构化 `input` / `judge`）。
 - ``+why=`...` `` — 0..N 条，解释代码已经展示 how 时，为什么选择当前结构、顺序或边界；可不写 spec 独立存在。
-- `+link=<ref>` — 0..N 条，作者策展的"改它时该顺带看的东西"：`<ref>` = 仓库相对 **md 路径** 或 **symbol-id**（另一函数），靠有没有 `::` 区分。见 [概念](../docs/concepts.md#link)。
+- `+link=<ref>` — 0..N 条，作者策展的"改它时该顺带看的东西"。仓内 ref 必须使用
+  `repo://` 或 `component://` 路径锚点；追加 `::symbol` 时指向另一代码 symbol。见
+  [LinkRef 契约](../link-ref.md)和[概念](../../docs/concepts.md#link)。
 - `+rule=\`...\`` — 0..N 条，**审查准则**（评审它时盯什么），是 `rule.json` 路径级准则的共置细化；rule 是 reviewer 指令、不是代码已满足的契约（那是 spec）。见 [概念](../docs/concepts.md#rule)。
 - 文本含逗号/换行时用反引号包裹。
 
@@ -60,7 +62,7 @@ type PhaseEventMiddleware struct{ events []Event }
           { "id": "happy_minimal",  "desc": "只传 Name 应创建成功", "expect": "201; body.id 非空" },
           { "id": "duplicate_name", "desc": "重复 Name", "expect": "409", "forbid": "写入第二条记录" }
         ],
-        "links": ["docs/tenancy.md", "internal/notebook/handler.go::Service.UpdateNotebook"],
+        "links": ["component://docs/tenancy.md", "component://internal/notebook/handler.go::Service.UpdateNotebook"],
         "rules": ["这个 handler 在请求热路径，盯新增的同步 DB 调用"]
       }
     ]

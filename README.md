@@ -21,7 +21,8 @@ the implementation alone, while keeping it addressable and machine-readable:
 - `spec` records what the code is intended to guarantee.
 - `why` records why the symbol uses its current design, ordering, or boundary when code only reveals how.
 - `rule` records what a future change or review must keep in mind.
-- `link` points to the design context or related symbol that explains the intent.
+- `link` points to design context or a related symbol through an explicit `repo://` or
+  `component://` path anchor.
 - `case` adds a concrete validation scenario when one is worth preserving; it is optional.
 
 Their primary purpose is not to replace unit or e2e tests. Tests and harnesses prove behavior;

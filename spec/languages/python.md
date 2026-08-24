@@ -13,8 +13,8 @@ notebook 创建接口:
 @case("happy_minimal", "只传 Name 应创建成功", expect="201; body.id 非空")
 @case("duplicate_name", "重复 Name", expect="409", forbid="写入第二条记录")
 @why("数据库唯一约束是多副本写入的最终权威")
-@link("docs/tenancy.md")
-@link("app/notebook/api.py::NotebookService.update_notebook")
+@link("component://docs/tenancy.md")
+@link("component://app/notebook/api.py::NotebookService.update_notebook")
 @rule("这个 handler 在请求热路径，盯新增的同步 DB 调用")
 async def create_notebook(req: CreateReq) -> Notebook:
     ...
@@ -24,7 +24,9 @@ async def create_notebook(req: CreateReq) -> Notebook:
   （如 `typing.overload`）分别维护契约时必须提供唯一 id。
 - `@case(id, desc, *, input="", expect="", forbid="", group=...)` — 0..N 个，`id` 必填且 `^[a-z][a-z0-9_]*$`，`desc` 必填；`input` / `expect` / `forbid` 自然语言，build-time 编译成结构化 `input` / `judge`。
 - `@why(text)` — 0..N 个，解释代码已经展示 how 时，为什么选择当前结构、顺序或边界；可不写 spec 独立存在。
-- `@link(ref)` — 0..N 个，作者策展的"改它时该顺带看的东西"：`ref` = 仓库相对 **md 路径** 或 **symbol-id**（另一函数），靠有没有 `::` 区分。见 [概念](../docs/concepts.md#link)。
+- `@link(ref)` — 0..N 个，作者策展的"改它时该顺带看的东西"。仓内 ref 必须使用
+  `repo://` 或 `component://` 路径锚点；追加 `::symbol` 时指向另一代码 symbol。见
+  [LinkRef 契约](../link-ref.md)和[概念](../../docs/concepts.md#link)。
 - `@rule(text)` — 0..N 个，**审查准则**（评审它时盯什么），是 `rule.json` 路径级准则的共置细化；rule 是 reviewer 指令、不是代码已满足的契约（那是 spec）。见 [概念](../docs/concepts.md#rule)。
 
 **五个 marker（`@spec`/`@case`/`@why`/`@link`/`@rule`）都可挂在类上**，描述该类型整体（契约/用例/设计理由/see-also/用法约束）。其中类级 `@rule` 尤其常用——表达**类型级用法约束**：不是"改这个类时盯什么"，而是"用到这个类型时盯什么"，供 review 在 diff *引用* 该类型时回溯注入。例：

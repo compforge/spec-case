@@ -10,6 +10,7 @@ import (
 	"encoding/hex"
 	"regexp"
 	"strings"
+	"unicode"
 )
 
 var caseIDPattern = regexp.MustCompile(`^[a-z][a-z0-9_]*$`)
@@ -67,7 +68,7 @@ func Parse(doc string) Document {
 				out.Whys = append(out.Whys, value)
 			}
 		case strings.HasPrefix(line, "+link="):
-			if value := unquote(strings.TrimPrefix(line, "+link=")); value != "" {
+			if value := unquote(strings.TrimPrefix(line, "+link=")); validLinkRef(value) {
 				out.Links = append(out.Links, value)
 			}
 		case strings.HasPrefix(line, "+rule="):
@@ -77,6 +78,27 @@ func Parse(doc string) Document {
 		}
 	}
 	return out
+}
+
+func validLinkRef(ref string) bool {
+	var target string
+	for _, prefix := range []string{"repo://", "component://"} {
+		if strings.HasPrefix(ref, prefix) {
+			target = strings.TrimPrefix(ref, prefix)
+			break
+		}
+	}
+	if target == "" || strings.HasPrefix(target, "/") || strings.Contains(target, `\`) ||
+		strings.IndexFunc(target, unicode.IsSpace) >= 0 {
+		return false
+	}
+	path, symbol, hasSymbol := strings.Cut(target, "::")
+	for _, segment := range strings.Split(path, "/") {
+		if segment == "" || segment == "." || segment == ".." {
+			return false
+		}
+	}
+	return !hasSymbol || (symbol != "" && !strings.ContainsAny(symbol, `:/\`))
 }
 
 // IntentHash fingerprints the executable intent of one marker case plus its

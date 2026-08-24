@@ -66,7 +66,7 @@ func TestExtractMarkers(t *testing.T) {
 		"// +case:id=happy,desc=`name only`,expect=`201; id non-empty`\n" +
 		"// +case:id=dup,desc=`duplicate name`,expect=`409`,forbid=`a second row is written`\n" +
 		"// +why=`database uniqueness is the cross-replica authority`\n" +
-		"// +link=docs/tenancy.md\n" +
+		"// +link=component://docs/tenancy.md\n" +
 		"// +rule=`hot path: watch new sync DB calls`\n" +
 		"func (s *Service) CreateNotebook(req Req) error { return nil }\n\n" +
 		"// Unmarked has no markers.\n" +
@@ -94,7 +94,7 @@ func TestExtractMarkers(t *testing.T) {
 	if len(s.Whys) != 1 || !strings.Contains(s.Whys[0], "cross-replica") {
 		t.Errorf("whys: %v", s.Whys)
 	}
-	if len(s.Links) != 1 || s.Links[0] != "docs/tenancy.md" {
+	if len(s.Links) != 1 || s.Links[0] != "component://docs/tenancy.md" {
 		t.Errorf("links: %v", s.Links)
 	}
 	if len(s.Rules) != 1 {
@@ -112,7 +112,7 @@ func TestExtractTypeLevelMarkers(t *testing.T) {
 		"// PhaseEventMiddleware accumulates events.\n" +
 		"// +spec=`accumulates per-run events; instances hold state`\n" +
 		"// +case:id=reuse_leaks,desc=`reused across requests`,forbid=`events retained across requests`\n" +
-		"// +link=docs/middleware.md\n" +
+		"// +link=repo://docs/middleware.md\n" +
 		"// +rule=`per-request only — do not cache/reuse (accumulates unbounded state)`\n" +
 		"type PhaseEventMiddleware struct{ events []int }\n\n" +
 		"type (\n" +
@@ -136,7 +136,7 @@ func TestExtractTypeLevelMarkers(t *testing.T) {
 	if len(s.Cases) != 1 || s.Cases[0].ID != "reuse_leaks" {
 		t.Errorf("cases: %+v", s.Cases)
 	}
-	if len(s.Links) != 1 || s.Links[0] != "docs/middleware.md" {
+	if len(s.Links) != 1 || s.Links[0] != "repo://docs/middleware.md" {
 		t.Errorf("links: %v", s.Links)
 	}
 	if len(s.Rules) != 1 || !strings.Contains(s.Rules[0], "per-request only") {

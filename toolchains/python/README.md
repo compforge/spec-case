@@ -27,7 +27,7 @@ from spec_case import spec, case, why, link, rule
 @case("happy_minimal", "only Name given should create", expect="201; body.id non-empty")
 @case("duplicate_name", "duplicate Name", expect="409", forbid="a second row is written")
 @why("database uniqueness is the cross-replica authority")
-@link("docs/tenancy.md")
+@link("component://docs/tenancy.md")
 @rule("hot request path — watch new synchronous DB calls")
 def create_notebook(req): ...
 ```

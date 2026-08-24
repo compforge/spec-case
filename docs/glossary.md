@@ -9,6 +9,8 @@
 | **CaseSet** | 一个 case 文件：`caseset` 标识 + `sources` + `facet_schema` + `cases`。可共享的 git 资产。 |
 | **unit** | 评审的最小作用域（一个函数的改动切片）。case 的评审侧孪生。 |
 | **symbol-id** | 把 spec/一组 case 绑到一个代码符号的稳定标识，格式 `<relpath>::<symbol>`。`specgen` 与 `ccr` 共用的 join key。详见 `spec/symbol-id.md`。 |
+| **Component** | Repository 内具有独立 build、验证和发布生命周期的服务组件。它不是语言；其稳定身份通常是仓相对根路径，归属由消费方 Project Knowledge 提供。 |
+| **LinkRef** | `link` 使用的仓内指针：`repo://<path>` 相对 Repository 根，`component://<path>` 相对当前 symbol 所属 Component 根；可追加 `::symbol`。详见 `spec/link-ref.md`。 |
 | **binding** | case 到代码契约的绑定字段（`symbol-id` + 可选 `spec_id` + spec 文本）；`spec_id` 对应同一 symbol 下的 `specs[].id`。本仓相对通用 case 模型独有的扩展。 |
 | **input** | 协议无关的激励描述（schemaless dict），只承载激励，不含环境/参数。 |
 | **judge** | 各判定面判据 dict（`judge.e2e` / `judge.eval` / `judge.perf` / `judge.trace`），各自可选；缺某面 = 只观测不判。 |
