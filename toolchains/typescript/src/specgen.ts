@@ -7,6 +7,7 @@ const JSDOC_MARKERS = new Map([
   ["spec", "spec"],
   ["case", "case"],
   ["why", "why"],
+  ["ideal", "ideal"],
   ["link", "link"],
   ["see", "link"],
   ["rule", "rule"],
@@ -15,6 +16,7 @@ const DECORATOR_MARKERS = new Map([
   ["Spec", "spec"],
   ["Case", "case"],
   ["Why", "why"],
+  ["Ideal", "ideal"],
   ["Link", "link"],
   ["Rule", "rule"],
 ]);
@@ -38,6 +40,7 @@ export interface SpecContract {
   spec?: string;
   cases: SpecCase[];
   whys?: string[];
+  ideals?: string[];
   links?: string[];
   rules?: string[];
 }
@@ -163,6 +166,7 @@ function hasContent(entry: SpecContract): boolean {
     entry.spec ||
       entry.cases.length > 0 ||
       entry.whys?.length ||
+      entry.ideals?.length ||
       entry.links?.length ||
       entry.rules?.length,
   );
@@ -198,6 +202,13 @@ function appendWhy(entry: SpecContract, text: string): void {
     return;
   }
   (entry.whys ??= []).push(text);
+}
+
+function appendIdeal(entry: SpecContract, text: string): void {
+  if (text === "") {
+    return;
+  }
+  (entry.ideals ??= []).push(text);
 }
 
 function appendRule(entry: SpecContract, text: string): void {
@@ -273,6 +284,8 @@ function applyJSDocMarkers(node: ts.Node, entry: PendingSpecEntry): void {
       entry.cases.push(item);
     } else if (name === "why") {
       appendWhy(entry, comment);
+    } else if (name === "ideal") {
+      appendIdeal(entry, comment);
     } else if (name === "link") {
       appendLink(entry, comment);
     } else if (name === "rule") {
@@ -322,6 +335,8 @@ function applyDecoratorMarkers(node: ts.Node, entry: PendingSpecEntry): void {
       entry.cases.push(item);
     } else if (name === "why") {
       appendWhy(entry, literalText(call.arguments[0]));
+    } else if (name === "ideal") {
+      appendIdeal(entry, literalText(call.arguments[0]));
     } else if (name === "link") {
       appendLink(entry, literalText(call.arguments[0]));
     } else if (name === "rule") {

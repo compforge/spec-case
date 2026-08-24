@@ -1,4 +1,4 @@
-// Package marker owns the Go +spec/+case/+why/+link/+rule authoring grammar.
+// Package marker owns the Go +spec/+case/+why/+ideal/+link/+rule authoring grammar.
 // Consumers may project the parsed intent into different artifacts: specgen
 // emits spec.json for white-box review, while a harness may compile or scaffold
 // executable black-box cases. Keeping parsing here prevents those consumers
@@ -33,6 +33,7 @@ type Document struct {
 	Spec   string
 	Cases  []Case
 	Whys   []string
+	Ideals []string
 	Links  []string
 	Rules  []string
 }
@@ -66,6 +67,10 @@ func Parse(doc string) Document {
 		case strings.HasPrefix(line, "+why="):
 			if value := unquote(strings.TrimPrefix(line, "+why=")); value != "" {
 				out.Whys = append(out.Whys, value)
+			}
+		case strings.HasPrefix(line, "+ideal="):
+			if value := unquote(strings.TrimPrefix(line, "+ideal=")); value != "" {
+				out.Ideals = append(out.Ideals, value)
 			}
 		case strings.HasPrefix(line, "+link="):
 			if value := unquote(strings.TrimPrefix(line, "+link=")); validLinkRef(value) {

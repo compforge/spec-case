@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { Case, Link, Rule, Spec, Why } from "../src/markers.js";
+import { Case, Ideal, Link, Rule, Spec, Why } from "../src/markers.js";
 import { canonical, check, extractFile, extractTree } from "../src/specgen.js";
 
 interface ConformanceFixture {
@@ -25,6 +25,7 @@ class Service {
     forbid: "duplicate",
   })
   @Why("database uniqueness is the cross-replica authority")
+  @Ideal("one persistence owner replaces dual writes")
   @Link("component://docs/design.md")
   @Rule("preserve ordering")
   run(): void {}
@@ -47,6 +48,7 @@ test("extracts decorators from methods", () => {
         ],
         spec: "does useful work",
         whys: ["database uniqueness is the cross-replica authority"],
+        ideals: ["one persistence owner replaces dual writes"],
         links: ["component://docs/design.md"],
         rules: ["preserve ordering"],
       },
@@ -60,6 +62,7 @@ test("extracts JSDoc markers from ordinary functions and function values", () =>
  * @spec creates a notebook
  * @case id=duplicate_name,desc="duplicate",expect="409",forbid="second row"
  * @why database uniqueness is the cross-replica authority
+ * @ideal one persistence owner replaces dual writes
  * @see {@link repo://docs/tenancy.md}
  * @rule watch synchronous DB calls
  */
@@ -75,6 +78,7 @@ export const loadNotebook = async (): Promise<void> => {};
   assert.deepEqual(create?.whys, [
     "database uniqueness is the cross-replica authority",
   ]);
+  assert.deepEqual(create?.ideals, ["one persistence owner replaces dual writes"]);
   assert.deepEqual(create?.links, ["repo://docs/tenancy.md"]);
   assert.equal(
     out["src/notebook.ts::loadNotebook"]?.specs[0]?.spec,
@@ -126,6 +130,21 @@ export function run(): void {}
       {
         cases: [],
         whys: ["stable keys keep retries idempotent"],
+      },
+    ],
+  });
+});
+
+test("ideal can exist without a spec", () => {
+  const source = `
+/** @ideal one scheduler owns all capacity decisions */
+export function run(): void {}
+`;
+  assert.deepEqual(extractFile(source, "src/run.ts")["src/run.ts::run"], {
+    specs: [
+      {
+        cases: [],
+        ideals: ["one scheduler owns all capacity decisions"],
       },
     ],
   });
@@ -218,6 +237,7 @@ test("marker decorators do not replace classes or methods", () => {
     @Case("happy", "returns one")
     @Link("component://docs/example.md")
     @Why("the stable key keeps retries idempotent")
+    @Ideal("one scheduler owns all capacity decisions")
     run(): number {
       return 1;
     }

@@ -18,7 +18,7 @@ symbol-id 必须为 `<relpath>::<symbol>` 两段式。
 - **AND** `symbol` 是该语言下该符号的规范名（见各语言 Requirement）
 - **AND** 整串大小写敏感、不做归一化
 
-可绑定的符号是函数、方法与类/类型。五个 marker（`spec`/`case`/`why`/`link`/`rule`）挂在其中任一符号上：挂在类/类型上绑定到 `<relpath>::<类型名>`，描述该类型整体（契约 / 用例 / 设计理由 / see-also / 用法约束），与该类型内的方法符号同址不同 key。类级 `rule` 常表达"类型级用法约束"（如"仅 per-request"）。
+可绑定的符号是函数、方法与类/类型。六个 marker（`spec`/`case`/`why`/`ideal`/`link`/`rule`）挂在其中任一符号上：挂在类/类型上绑定到 `<relpath>::<类型名>`，描述该类型整体（契约 / 用例 / 当前设计理由 / 理想形态 / see-also / 用法约束），与该类型内的方法符号同址不同 key。类级 `rule` 常表达"类型级用法约束"（如"仅 per-request"）。
 
 **fqn（跨仓身份）**：symbol-id（relpath）是**仓内** key；每个 spec.json entry 另带一个可选 `fqn`——符号的语言原生全限定名，是**跨仓**引用解析用的 location-independent 身份。当被评审仓引用的是**依赖**（如 framework SDK）里的符号时，依赖的 relpath 在本仓不存在，只有 fqn 两头都认（consumer 由 import 解析到 fqn，dependency 的 spec.json 也以 fqn 标注）。fqn 取法与语言相关，取不到（无包根）则省略——见各语言 Requirement。
 

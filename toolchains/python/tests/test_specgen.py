@@ -11,7 +11,7 @@ from spec_case import specgen  # noqa: E402
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 
 SAMPLE = '''
-from spec_case import spec, case, why, link, rule
+from spec_case import spec, case, why, ideal, link, rule
 
 @spec("""
 notebook create:
@@ -21,6 +21,7 @@ notebook create:
 @case("happy", "name only succeeds", expect="201")
 @case("dup", "duplicate name", expect="409", forbid="a second row is written")
 @why("database uniqueness is the cross-replica authority")
+@ideal("one persistence owner replaces dual writes")
 @link("component://docs/tenancy.md")
 @rule("hot path: watch new sync DB calls")
 def create_notebook(req):
@@ -53,6 +54,7 @@ def test_extract_markers():
     assert e["cases"][0]["desc"] == "name only succeeds"
     assert e["cases"][1]["forbid"] == "a second row is written"
     assert e["whys"] == ["database uniqueness is the cross-replica authority"]
+    assert e["ideals"] == ["one persistence owner replaces dual writes"]
     assert e["links"] == ["component://docs/tenancy.md"]
     assert e["rules"] == ["hot path: watch new sync DB calls"]
 
@@ -122,6 +124,13 @@ def test_why_can_exist_without_spec():
     }
 
 
+def test_ideal_can_exist_without_spec():
+    out = specgen.extract_file('@ideal("one scheduler owns all capacity decisions")\ndef f(): ...\n', "f.py")
+    assert out["f.py::f"] == {
+        "specs": [{"cases": [], "ideals": ["one scheduler owns all capacity decisions"]}]
+    }
+
+
 def test_spec_id_distinguishes_multiple_declarations():
     source = '''
 from typing import overload
@@ -177,6 +186,7 @@ def test_markers_are_noops():
     assert spec_case.link("docs/x.md")(fn) is fn
     assert spec_case.rule("watch X")(fn) is fn
     assert spec_case.why("chosen for idempotent retries")(fn) is fn
+    assert spec_case.ideal("one scheduler owns all capacity decisions")(fn) is fn
 
 
 def _gen(tmp_path, body):

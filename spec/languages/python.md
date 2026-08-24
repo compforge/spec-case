@@ -13,6 +13,7 @@ notebook 创建接口:
 @case("happy_minimal", "只传 Name 应创建成功", expect="201; body.id 非空")
 @case("duplicate_name", "重复 Name", expect="409", forbid="写入第二条记录")
 @why("数据库唯一约束是多副本写入的最终权威")
+@ideal("移除兼容双写，由单一持久化 owner 负责")
 @link("component://docs/tenancy.md")
 @link("component://app/notebook/api.py::NotebookService.update_notebook")
 @rule("这个 handler 在请求热路径，盯新增的同步 DB 调用")
@@ -24,12 +25,13 @@ async def create_notebook(req: CreateReq) -> Notebook:
   （如 `typing.overload`）分别维护契约时必须提供唯一 id。
 - `@case(id, desc, *, input="", expect="", forbid="", group=...)` — 0..N 个，`id` 必填且 `^[a-z][a-z0-9_]*$`，`desc` 必填；`input` / `expect` / `forbid` 自然语言，build-time 编译成结构化 `input` / `judge`。
 - `@why(text)` — 0..N 个，解释代码已经展示 how 时，为什么选择当前结构、顺序或边界；可不写 spec 独立存在。
+- `@ideal(text)` — 0..N 个，描述摆脱当前约束后应收敛到的理想形态；不是 TODO 或路线图承诺，可不写 spec 独立存在。
 - `@link(ref)` — 0..N 个，作者策展的"改它时该顺带看的东西"。仓内 ref 必须使用
   `repo://` 或 `component://` 路径锚点；追加 `::symbol` 时指向另一代码 symbol。见
   [LinkRef 契约](../link-ref.md)和[概念](../../docs/concepts.md#link)。
 - `@rule(text)` — 0..N 个，**审查准则**（评审它时盯什么），是 `rule.json` 路径级准则的共置细化；rule 是 reviewer 指令、不是代码已满足的契约（那是 spec）。见 [概念](../docs/concepts.md#rule)。
 
-**五个 marker（`@spec`/`@case`/`@why`/`@link`/`@rule`）都可挂在类上**，描述该类型整体（契约/用例/设计理由/see-also/用法约束）。其中类级 `@rule` 尤其常用——表达**类型级用法约束**：不是"改这个类时盯什么"，而是"用到这个类型时盯什么"，供 review 在 diff *引用* 该类型时回溯注入。例：
+**六个 marker（`@spec`/`@case`/`@why`/`@ideal`/`@link`/`@rule`）都可挂在类上**，描述该类型整体（契约/用例/当前设计理由/理想形态/see-also/用法约束）。其中类级 `@rule` 尤其常用——表达**类型级用法约束**：不是"改这个类时盯什么"，而是"用到这个类型时盯什么"，供 review 在 diff *引用* 该类型时回溯注入。例：
 
 ```python
 @rule("仅 per-request 使用——禁缓存/复用（events 无界累积）")
@@ -61,6 +63,7 @@ class PhaseEventMiddleware:
       {
         "spec": "notebook 创建接口: tenant/user header 必填; (tenant,user,name) 唯一，重复创建返回 ConflictError",
         "whys": ["数据库唯一约束是多副本写入的最终权威"],
+        "ideals": ["移除兼容双写，由单一持久化 owner 负责"],
         "cases": [
           { "id": "happy_minimal",  "desc": "只传 Name 应创建成功", "expect": "201; body.id 非空" },
           { "id": "duplicate_name", "desc": "重复 Name", "expect": "409", "forbid": "写入第二条记录" }
@@ -77,7 +80,7 @@ class PhaseEventMiddleware:
 
 specgen 纯静态扫 `ast`，按装饰器的**表面形态**识别，**不看它 import 自哪里**：
 
-- **名字命中**：裸名 `@spec(...)` 或属性调用 `@m.spec(...)`，名字是 `spec`/`case`/`why`/`link`/`rule` 即算（裸 `@spec` 不带括号的不算——marker 都带参数）。
+- **名字命中**：裸名 `@spec(...)` 或属性调用 `@m.spec(...)`，名字是 `spec`/`case`/`why`/`ideal`/`link`/`rule` 即算（裸 `@spec` 不带括号的不算——marker 都带参数）。
 - **形状取值**：`case` 取位置参 0=`id`、位置参 1=`desc`，`input`/`expect`/`forbid` 取同名 kwarg；且**只读字符串字面量**（变量、f-string、拼接都取不到）。
 
 推论：specgen 是这套 marker **grammar 的静态前端**，识别契约是"名字 + 参数形状"而非 import 来源。因此**任何遵循同一 grammar 的库**——哪怕装饰器 import 自别处、运行时行为不同（如做校验、挂属性供动态枚举）——只要名字与参数形状一致，specgen 都能原样抽成 `spec.json`。grammar 是契约，import 来源不是。
@@ -99,7 +102,7 @@ uv add spec-case        # 或 pip install spec-case
 ```
 
 ```python
-from spec_case import spec, case, why, link, rule
+from spec_case import spec, case, why, ideal, link, rule
 ```
 
 - **markers**：作为 runtime 依赖随之安装，装饰器在 import 时可用。
