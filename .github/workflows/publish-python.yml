@@ -1,0 +1,31 @@
+name: Publish Python package
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    if: startsWith(github.event.release.tag_name, 'v')
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/spec-case
+
+    defaults:
+      run:
+        working-directory: toolchains/python
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Build distribution
+        run: uv build
+
+      - name: Publish distribution
+        run: uv publish --trusted-publishing always
