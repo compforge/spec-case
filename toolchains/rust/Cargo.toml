@@ -1,0 +1,24 @@
+[package]
+name = "spec-case-rust"
+version = "0.2.1"
+edition = "2021"
+rust-version = "1.82"
+license = "Apache-2.0"
+description = "Rust marker parser and specgen toolchain for spec-case"
+repository = "https://github.com/compforge/spec-case"
+
+[lib]
+name = "spec_case"
+
+[[bin]]
+name = "specgen"
+path = "src/main.rs"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+syn = { version = "2", features = ["full"] }
+
+[dev-dependencies]
+tempfile = "3"
+

@@ -5,12 +5,14 @@
       "source": {
         "python": "class Service:\n    @spec(\"does useful work\")\n    @case(\"happy\", \"succeeds\", input=\"minimal\", expect=\"ok\", forbid=\"duplicate\")\n    @why(\"independent loops can starve each other\")\n    @why(\"one owner keeps capacity decisions ordered\")\n    @ideal(\"one scheduler owns all capacity decisions\")\n    @link(\"repo://docs/design.md\")\n    @link(\"component://internal/peer.go::Service.Sync\")\n    @rule(\"preserve ordering\")\n    def run(self): ...\n",
         "go": "package fixture\n\n// +spec=`does useful work`\n// +case:id=happy,desc=`succeeds`,input=`minimal`,expect=`ok`,forbid=`duplicate`\n// +why=`independent loops can starve each other`\n// +why=`one owner keeps capacity decisions ordered`\n// +ideal=`one scheduler owns all capacity decisions`\n// +link=repo://docs/design.md\n// +link=component://internal/peer.go::Service.Sync\n// +rule=`preserve ordering`\nfunc (s *Service) Run() {}\n",
-        "typescript": "class Service {\n  @Spec(\"does useful work\")\n  @Case(\"happy\", \"succeeds\", { input: \"minimal\", expect: \"ok\", forbid: \"duplicate\" })\n  @Why(\"independent loops can starve each other\")\n  @Why(\"one owner keeps capacity decisions ordered\")\n  @Ideal(\"one scheduler owns all capacity decisions\")\n  @Link(\"repo://docs/design.md\")\n  @Link(\"component://internal/peer.go::Service.Sync\")\n  @Rule(\"preserve ordering\")\n  run(): void {}\n}\n"
+        "typescript": "class Service {\n  @Spec(\"does useful work\")\n  @Case(\"happy\", \"succeeds\", { input: \"minimal\", expect: \"ok\", forbid: \"duplicate\" })\n  @Why(\"independent loops can starve each other\")\n  @Why(\"one owner keeps capacity decisions ordered\")\n  @Ideal(\"one scheduler owns all capacity decisions\")\n  @Link(\"repo://docs/design.md\")\n  @Link(\"component://internal/peer.go::Service.Sync\")\n  @Rule(\"preserve ordering\")\n  run(): void {}\n}\n",
+        "rust": "struct Service;\n\nimpl Service {\n    /// +spec=`does useful work`\n    /// +case:id=happy,desc=`succeeds`,input=`minimal`,expect=`ok`,forbid=`duplicate`\n    /// +why=`independent loops can starve each other`\n    /// +why=`one owner keeps capacity decisions ordered`\n    /// +ideal=`one scheduler owns all capacity decisions`\n    /// +link=repo://docs/design.md\n    /// +link=component://internal/peer.go::Service.Sync\n    /// +rule=`preserve ordering`\n    fn run(&self) {}\n}\n"
       },
       "symbol": {
         "python": "fixture.py::Service.run",
         "go": "fixture.go::Service.Run",
-        "typescript": "fixture.ts::Service.run"
+        "typescript": "fixture.ts::Service.run",
+        "rust": "fixture.rs::Service.run"
       },
       "expected_entry": {
         "specs": [
@@ -44,12 +46,14 @@
       "source": {
         "python": "@ideal(\"one scheduler owns all capacity decisions\")\ndef run(): ...\n",
         "go": "package fixture\n\n// +ideal=`one scheduler owns all capacity decisions`\nfunc Run() {}\n",
-        "typescript": "/** @ideal one scheduler owns all capacity decisions */\nfunction run(): void {}\n"
+        "typescript": "/** @ideal one scheduler owns all capacity decisions */\nfunction run(): void {}\n",
+        "rust": "/// +ideal=`one scheduler owns all capacity decisions`\nfn run() {}\n"
       },
       "symbol": {
         "python": "fixture.py::run",
         "go": "fixture.go::Run",
-        "typescript": "fixture.ts::run"
+        "typescript": "fixture.ts::run",
+        "rust": "fixture.rs::run"
       },
       "expected_entry": {
         "specs": [
@@ -65,12 +69,14 @@
       "source": {
         "python": "@link(\"../../docs/design.md\")\n@link(\"component://../../docs/design.md\")\ndef run(): ...\n",
         "go": "package fixture\n\n// +link=../../docs/design.md\n// +link=component://../../docs/design.md\nfunc Run() {}\n",
-        "typescript": "/**\n * @see {@link ../../docs/design.md}\n * @see {@link component://../../docs/design.md}\n */\nfunction run(): void {}\n"
+        "typescript": "/**\n * @see {@link ../../docs/design.md}\n * @see {@link component://../../docs/design.md}\n */\nfunction run(): void {}\n",
+        "rust": "/// +link=../../docs/design.md\n/// +link=component://../../docs/design.md\nfn run() {}\n"
       },
       "symbol": {
         "python": "fixture.py::run",
         "go": "fixture.go::Run",
-        "typescript": "fixture.ts::run"
+        "typescript": "fixture.ts::run",
+        "rust": "fixture.rs::run"
       },
       "expected_entry": null
     },
@@ -79,12 +85,14 @@
       "source": {
         "python": "@why(\"the stable key keeps retries idempotent\")\ndef run(): ...\n",
         "go": "package fixture\n\n// +why=`the stable key keeps retries idempotent`\nfunc Run() {}\n",
-        "typescript": "/** @why the stable key keeps retries idempotent */\nfunction run(): void {}\n"
+        "typescript": "/** @why the stable key keeps retries idempotent */\nfunction run(): void {}\n",
+        "rust": "/// +why=`the stable key keeps retries idempotent`\nfn run() {}\n"
       },
       "symbol": {
         "python": "fixture.py::run",
         "go": "fixture.go::Run",
-        "typescript": "fixture.ts::run"
+        "typescript": "fixture.ts::run",
+        "rust": "fixture.rs::run"
       },
       "expected_entry": {
         "specs": [
@@ -100,12 +108,14 @@
       "source": {
         "python": "@spec(\"contract only\")\ndef run(): ...\n",
         "go": "package fixture\n\n// +spec=`contract only`\nfunc Run() {}\n",
-        "typescript": "/** @spec contract only */\nfunction run(): void {}\n"
+        "typescript": "/** @spec contract only */\nfunction run(): void {}\n",
+        "rust": "/// +spec=`contract only`\nfn run() {}\n"
       },
       "symbol": {
         "python": "fixture.py::run",
         "go": "fixture.go::Run",
-        "typescript": "fixture.ts::run"
+        "typescript": "fixture.ts::run",
+        "rust": "fixture.rs::run"
       },
       "expected_entry": {
         "specs": [{ "spec": "contract only", "cases": [] }]
@@ -116,12 +126,14 @@
       "source": {
         "python": "@spec(\"string contract\", id=\"string_input\")\ndef run(): ...\n",
         "go": "package fixture\n\n// +spec:id=string_input,text=`string contract`\nfunc Run() {}\n",
-        "typescript": "/** @spec id=string_input,text=`string contract` */\nfunction run(): void {}\n"
+        "typescript": "/** @spec id=string_input,text=`string contract` */\nfunction run(): void {}\n",
+        "rust": "/// +spec:id=string_input,text=`string contract`\nfn run() {}\n"
       },
       "symbol": {
         "python": "fixture.py::run",
         "go": "fixture.go::Run",
-        "typescript": "fixture.ts::run"
+        "typescript": "fixture.ts::run",
+        "rust": "fixture.rs::run"
       },
       "expected_entry": {
         "specs": [{ "id": "string_input", "spec": "string contract", "cases": [] }]
@@ -132,12 +144,14 @@
       "source": {
         "python": "@case(\"Bad-ID\", \"invalid\")\ndef run(): ...\n",
         "go": "package fixture\n\n// +case:id=Bad-ID,desc=`invalid`\nfunc Run() {}\n",
-        "typescript": "/** @case id=Bad-ID,desc=invalid */\nfunction run(): void {}\n"
+        "typescript": "/** @case id=Bad-ID,desc=invalid */\nfunction run(): void {}\n",
+        "rust": "/// +case:id=Bad-ID,desc=`invalid`\nfn run() {}\n"
       },
       "symbol": {
         "python": "fixture.py::run",
         "go": "fixture.go::Run",
-        "typescript": "fixture.ts::run"
+        "typescript": "fixture.ts::run",
+        "rust": "fixture.rs::run"
       },
       "expected_entry": null
     }

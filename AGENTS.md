@@ -20,7 +20,8 @@ spec-case 是**绑定到代码的 spec/case 资产的共享真源**，被两类�
 - `toolchains/python/` — Python marker 包、canonical Case model 与 `specgen`。
 - `toolchains/go/` — Go marker grammar（`marker/`）、`specgen` 投影与工具，以及可导入的 canonical `model` 包。
 - `toolchains/typescript/` — TypeScript canonical CaseSet runtime、decorator / JSDoc marker 与基于 Compiler API 的 `specgen`。
-- 三个 specgen 都带 `--check`：比对 committed `spec.json` vs 当前 marker，漂移（重命名/删除/marker 改动）则报差异 + 非零退出——CI 漂移门。
+- `toolchains/rust/` — Rust doc-comment marker grammar 与基于 `syn` 的 `specgen`。
+- 四个 specgen 都带 `--check`：比对 committed `spec.json` vs 当前 marker，漂移（重命名/删除/marker 改动）则报差异 + 非零退出——CI 漂移门。
 
 ## 关键约定
 

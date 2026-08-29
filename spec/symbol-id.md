@@ -32,6 +32,9 @@ symbol-id 必须为 `<relpath>::<symbol>` 两段式。
 TypeScript 首版 toolchain 不生成可选 `fqn`。npm package exports、`tsconfig` paths 与源码相对路径之间
 没有统一映射；在跨仓身份契约明确前，省略比生成不稳定的伪 FQN 更安全。
 
+Rust 首版同样不生成可选 `fqn`。Cargo package、lib/bin target、自定义 target path 与源码 module
+path 之间没有仅凭单文件即可稳定推导的统一映射；在 Cargo target/module resolution 契约明确前省略。
+
 ### Requirement: Go 符号规范
 
 Go 的 `symbol` 必须能无歧义定位到一个顶层函数、方法或类型（type）。
@@ -110,6 +113,39 @@ TypeScript 的 `symbol` 使用声明名或外层 binding name；namespace、clas
 - **AND** symbol-id 仍由源码结构生成，不因 spec id 改变
 - **AND** `spec.json` 在该 symbol-id 下以 `specs[]` 保存命名契约
 - **AND** 多个 spec 缺少 id 或 id 重复时，`specgen` 必须报错
+
+### Requirement: Rust 符号规范
+
+Rust 的 `symbol` 使用声明名；inline module、类型、trait 与方法形成点号限定前缀。
+
+#### Scenario: free function 与 inline module
+
+- **WHEN** `src/main.rs` 声明 free function `fn run()`
+- **THEN** symbol-id = `src/main.rs::run`
+- **WHEN** inline module `worker` 内声明 `fn run()`
+- **THEN** symbol-id = `src/main.rs::worker.run`
+
+#### Scenario: inherent impl、trait 与 trait impl
+
+- **WHEN** inherent impl 声明 `Service::start`
+- **THEN** `symbol` = `Service.start`
+- **WHEN** trait `Store` 声明 method `get`
+- **THEN** `symbol` = `Store.get`
+- **WHEN** `impl Store for Service` 实现 method `get`
+- **THEN** `symbol` = `Service.Store.get`，避免与 inherent method 或其它 trait 的同名 method 冲突
+
+#### Scenario: 类型与泛型
+
+- **WHEN** 声明 struct / enum / union / type alias `Request`
+- **THEN** `symbol` = `Request`
+- **WHEN** method 位于 `impl<T> Service<T>`
+- **THEN** 泛型参数不进入 symbol，仍使用 `Service.method`
+
+#### Scenario: 同名条件编译声明
+
+- **WHEN** 多个 Rust 声明计算出同一个 symbol-id（例如条件编译的同名实现）
+- **THEN** 每个声明必须通过 `+spec:id=...` 提供唯一 spec id
+- **AND** 缺少 id 或 id 重复时，`specgen` 必须报错
 
 ### Requirement: 基于符号、不基于行号
 
