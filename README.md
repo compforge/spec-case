@@ -39,11 +39,13 @@ vocabulary, bind to a `symbol-id`, compile into `spec.json`, and can be checked 
 - `toolchains/python/` — the pip package: markers, `specgen`, and the optional canonical Case model
 - `toolchains/go/` — Go `specgen` plus the importable canonical `model` package
 - `toolchains/typescript/` — TypeScript decorators, JSDoc markers, and the Compiler API `specgen`
+- `toolchains/rust/` — Rust doc-comment markers and the `syn`-based `specgen`
 
 ```bash
 pip install spec-case          # markers + specgen only, zero deps
 pip install 'spec-case[model]' # + canonical Case model (pydantic, pyyaml)
 npm install @compforge/spec-case # TypeScript CaseSet runtime + markers + specgen
+cargo run --manifest-path toolchains/rust/Cargo.toml --bin specgen -- --help # Rust specgen
 ```
 
 ## Status
