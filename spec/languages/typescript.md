@@ -109,3 +109,18 @@ npx specgen <src-dir> -o spec.json --root <repo-root> --check
 `specgen` 只读取字面量：decorator 别名、变量拼接、template interpolation 和计算属性不会被求值。
 扫描覆盖 `.ts` / `.tsx` / `.mts` / `.cts` 及对应 JavaScript 扩展，忽略声明文件、`node_modules`、
 `dist` 和 `coverage`。
+
+## tmp
+
+```typescript
+class Adapter {
+  @Tmp("keep legacy conversion", { until: "all supported clients use v2" })
+  normalizeRequest(): void {}
+}
+
+/** @tmp text=`keep legacy conversion`,until=`all supported clients use v2` */
+function normalizeRequest(): void {}
+```
+
+`text` 与 `until` 都必填；生成 `tmps: [{text, until}]`。多个标记保持声明顺序。
+完整语义、字段与提取约束见 [Tmp 契约](../tmp.md)。

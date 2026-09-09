@@ -11,12 +11,19 @@ pub struct MarkerCase {
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct MarkerTmp {
+    pub text: String,
+    pub until: String,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct MarkerDocument {
     pub spec_id: Option<String>,
     pub spec: String,
     pub cases: Vec<MarkerCase>,
     pub whys: Vec<String>,
     pub ideals: Vec<String>,
+    pub tmps: Vec<MarkerTmp>,
     pub links: Vec<String>,
     pub rules: Vec<String>,
 }
@@ -53,6 +60,21 @@ pub fn parse_markers(doc: &str) -> MarkerDocument {
             push_nonempty(&mut out.whys, unquote(value));
         } else if let Some(value) = line.strip_prefix("+ideal=") {
             push_nonempty(&mut out.ideals, unquote(value));
+        } else if let Some(body) = line.strip_prefix("+tmp:") {
+            let args = parse_args(body);
+            let text = arg(&args, "text")
+                .unwrap_or_default()
+                .split_whitespace()
+                .collect::<Vec<_>>()
+                .join(" ");
+            let until = arg(&args, "until")
+                .unwrap_or_default()
+                .split_whitespace()
+                .collect::<Vec<_>>()
+                .join(" ");
+            if !text.is_empty() && !until.is_empty() {
+                out.tmps.push(MarkerTmp { text, until });
+            }
         } else if let Some(value) = line.strip_prefix("+link=") {
             let value = unquote(value);
             if valid_link_ref(&value) {

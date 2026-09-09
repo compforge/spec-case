@@ -19,7 +19,7 @@ impl NotebookService {
 }
 ```
 
-Rust 与 Go 共用 `+spec` / `+case` / `+why` / `+ideal` / `+link` / `+rule` 的字段与取值规则：
+Rust 与 Go 共用 `+spec` / `+case` / `+why` / `+ideal` / `+tmp` / `+link` / `+rule` 的字段与取值规则：
 
 - `+spec=\`...\``；需要显式身份时写 `+spec:id=string_input,text=\`...\``。
 - `+case:id=...,desc=...,input=...,expect=...,forbid=...`，其中 `id` 必须匹配 `^[a-z][a-z0-9_]*$`。
@@ -28,7 +28,7 @@ Rust 与 Go 共用 `+spec` / `+case` / `+why` / `+ideal` / `+link` / `+rule` 的
 
 marker 必须位于 `///` 或 `/** ... */` doc comment 中；普通 `//` 注释不绑定 item，也不会被抽取。等价的 `#[doc = "+spec=..."]` 属性同样可被读取。
 
-六个 marker 可绑定到 free function、associated function / method、struct、enum、union、type alias、trait 及 trait method。inline module 会形成点号限定前缀。
+七个 marker 可绑定到 free function、associated function / method、struct、enum、union、type alias、trait 及 trait method。inline module 会形成点号限定前缀。
 
 ## 绑定（symbol-id）
 
@@ -61,3 +61,13 @@ cargo run --manifest-path toolchains/rust/Cargo.toml --bin specgen -- \
 
 `specgen` 递归扫描 `.rs` 文件，忽略 `.git` 与 `target` 目录。语法无法解析的文件与暂时不可读的文件会被跳过；symbol 冲突和非法 spec id 属于契约歧义，会明确报错。
 
+
+## tmp
+
+```rust
+/// +tmp:text=`keep legacy conversion`,until=`all supported clients use v2`
+fn normalize_request() {}
+```
+
+`text` 与 `until` 都必填；生成 `tmps: [{text, until}]`。多个标记保持声明顺序。
+完整语义、字段与提取约束见 [Tmp 契约](../tmp.md)。

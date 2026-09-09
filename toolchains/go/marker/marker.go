@@ -1,4 +1,4 @@
-// Package marker owns the Go +spec/+case/+why/+ideal/+link/+rule authoring grammar.
+// Package marker owns the Go +spec/+case/+why/+ideal/+tmp/+link/+rule authoring grammar.
 // Consumers may project the parsed intent into different artifacts: specgen
 // emits spec.json for white-box review, while a harness may compile or scaffold
 // executable black-box cases. Keeping parsing here prevents those consumers
@@ -27,6 +27,12 @@ type Case struct {
 	Group  string
 }
 
+// Tmp is a temporary measure and the condition for removing or replacing it.
+type Tmp struct {
+	Text  string
+	Until string
+}
+
 // Document is the marker intent attached to one Go symbol.
 type Document struct {
 	SpecID string
@@ -34,6 +40,7 @@ type Document struct {
 	Cases  []Case
 	Whys   []string
 	Ideals []string
+	Tmps   []Tmp
 	Links  []string
 	Rules  []string
 }
@@ -71,6 +78,13 @@ func Parse(doc string) Document {
 		case strings.HasPrefix(line, "+ideal="):
 			if value := unquote(strings.TrimPrefix(line, "+ideal=")); value != "" {
 				out.Ideals = append(out.Ideals, value)
+			}
+		case strings.HasPrefix(line, "+tmp:"):
+			args := parseArgs(strings.TrimPrefix(line, "+tmp:"))
+			text := strings.Join(strings.Fields(args["text"]), " ")
+			until := strings.Join(strings.Fields(args["until"]), " ")
+			if text != "" && until != "" {
+				out.Tmps = append(out.Tmps, Tmp{Text: text, Until: until})
 			}
 		case strings.HasPrefix(line, "+link="):
 			if value := unquote(strings.TrimPrefix(line, "+link=")); validLinkRef(value) {

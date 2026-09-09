@@ -10,6 +10,15 @@
       "pattern": "^(repo|component)://.+$",
       "description": "An anchored repository-local reference defined by spec/link-ref.md."
     },
+    "tmp": {
+      "type": "object",
+      "required": ["text", "until"],
+      "additionalProperties": false,
+      "properties": {
+        "text": { "type": "string", "pattern": "\\S", "description": "The temporary measure owned by this symbol." },
+        "until": { "type": "string", "pattern": "\\S", "description": "The verifiable condition for removal or replacement; not an automatic expiry." }
+      }
+    },
     "case": {
       "type": "object",
       "required": ["id"],
@@ -34,7 +43,7 @@
         },
         "spec": {
           "type": "string",
-          "description": "The contract preamble in natural language. May be absent when only cases, whys, ideals, links, or rules exist."
+          "description": "The contract preamble in natural language. May be absent when only cases, whys, ideals, tmps, links, or rules exist."
         },
         "cases": {
           "type": "array",
@@ -55,6 +64,11 @@
           "type": "array",
           "description": "Structured rationale that explains why the symbol uses its current design, ordering, or boundary. It may exist without a spec.",
           "items": { "type": "string" }
+        },
+        "tmps": {
+          "type": "array",
+          "description": "Temporary measures with explicit exit conditions; may exist without a spec.",
+          "items": { "$ref": "#/definitions/tmp" }
         },
         "ideals": {
           "type": "array",

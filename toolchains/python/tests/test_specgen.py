@@ -181,6 +181,7 @@ def test_markers_are_noops():
     def fn():
         return 1
 
+    assert spec_case.tmp("keep fallback", until="migration verified")(fn) is fn
     assert spec_case.spec("x", id="named")(fn) is fn
     assert spec_case.case("id", "d", expect="200")(fn) is fn
     assert spec_case.link("docs/x.md")(fn) is fn
@@ -215,3 +216,29 @@ def test_check_missing_file_is_drift(tmp_path):
     src.mkdir()
     (src / "a.py").write_text('from spec_case import spec\n@spec("x")\ndef f(): ...\n')
     assert specgen.main([str(src), "-o", str(tmp_path / "nope.json"), "--root", str(src), "--check"]) == 1
+
+
+def test_tmp_literals_and_type_binding():
+    out = specgen.extract_file(
+        '@m.tmp("keep fallback", until="migration verified")\nclass Adapter: ...\n'
+        '@tmp(dynamic_text, until="ready")\ndef dynamic(): ...\n'
+        '@tmp("keep fallback", until=dynamic_condition)\ndef unresolved(): ...\n',
+        "adapter.py",
+    )
+    assert out == {
+        "adapter.py::Adapter": {
+            "specs": [{
+                "cases": [],
+                "tmps": [{"text": "keep fallback", "until": "migration verified"}],
+            }],
+        },
+    }
+
+
+def test_check_reports_tmp_exit_condition_drift(tmp_path):
+    source = '@tmp("keep fallback", until="migration started")\ndef run(): ...\n'
+    src, out = _gen(tmp_path, source)
+    args = [str(src), "-o", str(out), "--root", str(src), "--check"]
+    assert specgen.main(args) == 0
+    (src / "a.py").write_text(source.replace("migration started", "migration verified"))
+    assert specgen.main(args) == 1

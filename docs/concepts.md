@@ -52,11 +52,19 @@ case 是可积累、可共享的 git 资产。一个 case 文件是一个 **Case
 - ideal 不是 TODO、排期或路线图承诺；需要执行的迁移任务由项目管理或变更计划承载。
 - ideal 可以不依附任何 spec 独立存在；跨多个 symbol 的目标架构仍由设计文档或 ADR 承载，ideal 只保留由当前 symbol 拥有的稳定摘要。
 
+## tmp
+
+`tmp` 表示当前 symbol 拥有的一项临时措施，以及移除或替换它的退出条件。
+每条标记包含必填的 `text` 与 `until`；生成态保存为 `tmps[]`，可独立于 spec 存在。
+`why` 解释当前选择，`ideal` 描述目标形态，`tmp` 则明确当前措施何时应该退出。
+消费方需根据证据判断条件是否满足；标记不会自动触发删除，也不豁免当前契约。
+字段与提取约束见 [Tmp 契约](../spec/tmp.md)。
+
 ## link
 
-第五个挂在符号上的维度（和 spec/case/why/ideal 正交，借笔记软件的双链）：一个函数声明**改它时该顺带看的东西**——一篇设计 md，或另一个函数。
+挂在符号上的另一个维度（和 spec/case/why/ideal/tmp 正交，借笔记软件的双链）：一个函数声明**改它时该顺带看的东西**——一篇设计 md，或另一个函数。
 
-- **spec** 答"这个 func 的契约"，**case** 答"具体场景 checklist"，**why** 答"为什么选择当前实现"，**ideal** 答"摆脱当前约束后应收敛到哪"，**link** 答"改它时还该看哪"。
+- **spec** 答"这个 func 的契约"，**case** 答"具体场景 checklist"，**why** 答"为什么选择当前实现"，**ideal** 答"摆脱当前约束后应收敛到哪"，**tmp** 答"临时措施何时退出"，**link** 答"改它时还该看哪"。
 - link 是**作者策展的高信号上下文**，区别于自动发现（如 caller 上溯）——把"动 `create_notebook` 时记得 `update_notebook` 要保持一致"这种部落知识编码进代码，正中"改完不敢保证没坏"。
 - 一个引用 `<ref>` 使用显式路径锚点：`repo://` 相对 Repository 根，`component://` 相对当前 symbol
   所属 Component 根；追加 `::symbol` 时指向另一代码 symbol，否则指向文档等资产。Component 是仓内
@@ -68,17 +76,17 @@ case 是可积累、可共享的 git 资产。一个 case 文件是一个 **Case
 
 ## rule
 
-第六个挂在符号上的维度：函数级**审查准则**——评审这个函数时**该盯什么**。
+第七个挂在符号上的维度：函数级**审查准则**——评审这个函数时**该盯什么**。
 
 - 它是 `rule.json`（路径级、glob、dir 级粗准则）的**共置细化版**：写在函数上，只管这个函数。
 - 和 spec 别混：**spec = 代码保证什么（契约/事实）**；**rule = 评审时盯什么（reviewer 指令，不一定是代码已满足的事实）**。例：spec=`不跨 tenant`；rule=`这个 handler 在热路径，盯新增的同步 DB 调用`。
 - 消费方（ccr）的 `RuleBuilder` 同时吃两路：函数级 `rule`（走 spec.json）+ 路径级 `rule.json`（走现有 resolver）。
 
-六个维度合起来，就是 ccr 为一个改动函数收集的**六类上下文**——评审时"diff→func→收齐 spec/case/why/ideal/rule/link（能拿到多少逐步迭代）"：
+七个维度合起来，构成可供 ccr 等消费方为改动函数收集的**七类上下文**——评审时"diff→func→收齐 spec/case/why/ideal/tmp/rule/link（能拿到多少逐步迭代）"：
 
-关系：**一个 symbol 有 0..N spec binding，也有 0..N why 和 0..N ideal；case、link、rule 仍按当前
-declaration 投影分组**。为了兼容统一的 `specs[]` 生成结构，why-only 或 ideal-only symbol 会生成一个
-没有 `spec`、但带 `cases: []` 和对应 `whys[]` / `ideals[]` 的 entry。
+关系：**一个 symbol 有 0..N spec binding，也有 0..N why、0..N ideal 和 0..N tmp；case、link、rule 仍按当前
+declaration 投影分组**。为了兼容统一的 `specs[]` 生成结构，why-only、ideal-only 或 tmp-only symbol 会生成一个
+没有 `spec`、但带 `cases: []` 和对应 `whys[]` / `ideals[]` / `tmps[]` 的 entry。
 
 ## 双消费：黑盒 vs 白盒
 
@@ -105,7 +113,7 @@ declaration 投影分组**。为了兼容统一的 `specs[]` 生成结构，why-
 3. **build-time 抽取**：NL 标记 → `specgen` 静态扫描（AST）→ 编译成白盒 review 投影 `spec.json`；各语言实现位于 `toolchains/`。
 
 CaseSet 与 `spec.json` 共享 spec/case 词汇和 symbol-id 绑定契约，但面向不同消费者，不是同一种序列化 shape。
-`why` 和 `ideal` 是代码评审侧的结构化意图，只进入 `spec.json`，不进入黑盒 CaseSet，也不参与 `case_hash`。
+`why`、`ideal` 和 `tmp` 是代码评审侧的结构化意图，只进入 `spec.json`，不进入黑盒 CaseSet，也不参与 `case_hash`。
 
 spec-case 把代码优先这条的**产物绑定**钉死：标记落在哪个符号上，就生成对应 symbol-id。
 

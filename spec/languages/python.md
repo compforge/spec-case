@@ -29,9 +29,9 @@ async def create_notebook(req: CreateReq) -> Notebook:
 - `@link(ref)` — 0..N 个，作者策展的"改它时该顺带看的东西"。仓内 ref 必须使用
   `repo://` 或 `component://` 路径锚点；追加 `::symbol` 时指向另一代码 symbol。见
   [LinkRef 契约](../link-ref.md)和[概念](../../docs/concepts.md#link)。
-- `@rule(text)` — 0..N 个，**审查准则**（评审它时盯什么），是 `rule.json` 路径级准则的共置细化；rule 是 reviewer 指令、不是代码已满足的契约（那是 spec）。见 [概念](../docs/concepts.md#rule)。
+- `@rule(text)` — 0..N 个，**审查准则**（评审它时盯什么），是 `rule.json` 路径级准则的共置细化；rule 是 reviewer 指令、不是代码已满足的契约（那是 spec）。见 [概念](../../docs/concepts.md#rule)。
 
-**六个 marker（`@spec`/`@case`/`@why`/`@ideal`/`@link`/`@rule`）都可挂在类上**，描述该类型整体（契约/用例/当前设计理由/理想形态/see-also/用法约束）。其中类级 `@rule` 尤其常用——表达**类型级用法约束**：不是"改这个类时盯什么"，而是"用到这个类型时盯什么"，供 review 在 diff *引用* 该类型时回溯注入。例：
+**七个 marker（`@spec`/`@case`/`@why`/`@ideal`/`@tmp`/`@link`/`@rule`）都可挂在类上**，描述该类型整体（契约/用例/当前设计理由/理想形态/临时措施与退出条件/see-also/用法约束）。其中类级 `@rule` 尤其常用——表达**类型级用法约束**：不是"改这个类时盯什么"，而是"用到这个类型时盯什么"，供 review 在 diff *引用* 该类型时回溯注入。例：
 
 ```python
 @rule("仅 per-request 使用——禁缓存/复用（events 无界累积）")
@@ -80,7 +80,7 @@ class PhaseEventMiddleware:
 
 specgen 纯静态扫 `ast`，按装饰器的**表面形态**识别，**不看它 import 自哪里**：
 
-- **名字命中**：裸名 `@spec(...)` 或属性调用 `@m.spec(...)`，名字是 `spec`/`case`/`why`/`ideal`/`link`/`rule` 即算（裸 `@spec` 不带括号的不算——marker 都带参数）。
+- **名字命中**：裸名 `@spec(...)` 或属性调用 `@m.spec(...)`，名字是 `spec`/`case`/`why`/`ideal`/`tmp`/`link`/`rule` 即算（裸 `@spec` 不带括号的不算——marker 都带参数）。
 - **形状取值**：`case` 取位置参 0=`id`、位置参 1=`desc`，`input`/`expect`/`forbid` 取同名 kwarg；且**只读字符串字面量**（变量、f-string、拼接都取不到）。
 
 推论：specgen 是这套 marker **grammar 的静态前端**，识别契约是"名字 + 参数形状"而非 import 来源。因此**任何遵循同一 grammar 的库**——哪怕装饰器 import 自别处、运行时行为不同（如做校验、挂属性供动态枚举）——只要名字与参数形状一致，specgen 都能原样抽成 `spec.json`。grammar 是契约，import 来源不是。
@@ -102,7 +102,7 @@ uv add spec-case        # 或 pip install spec-case
 ```
 
 ```python
-from spec_case import spec, case, why, ideal, link, rule
+from spec_case import spec, case, why, ideal, tmp, link, rule
 ```
 
 - **markers**：作为 runtime 依赖随之安装，装饰器在 import 时可用。
@@ -111,3 +111,13 @@ from spec_case import spec, case, why, ideal, link, rule
 > 不必为此把包拆成两个（markers 包 + specgen 包）：零依赖、specgen 在 runtime 从不被 import，多带一个 `.py` 成本为零。
 
 详见包内 [`toolchains/python/README.md`](../../toolchains/python/README.md)。
+
+## tmp
+
+```python
+@tmp("keep legacy conversion", until="all supported clients use v2")
+def normalize_request(request): ...
+```
+
+`text` 与 `until` 都必填；生成 `tmps: [{text, until}]`。多个标记保持声明顺序。
+完整语义、字段与提取约束见 [Tmp 契约](../tmp.md)。

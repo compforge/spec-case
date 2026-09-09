@@ -1,6 +1,6 @@
 # spec-case (TypeScript)
 
-TypeScript 的 canonical CaseSet runtime，以及 **spec / case / why / ideal / link / rule** markers 与静态
+TypeScript 的 canonical CaseSet runtime，以及 **spec / case / why / ideal / tmp / link / rule** markers 与静态
 `specgen`。CaseSet runtime 供 e2e / eval / perf 等 Harness 读取同一份资产；specgen 把绑定到代码
 symbol 的 decorator 或 JSDoc marker 编译成 `spec.json`。
 
@@ -22,7 +22,7 @@ validateCaseSet(cases);
 class 和 method 可以使用 no-op decorators：
 
 ```typescript
-import { Case, Ideal, Link, Rule, Spec, Why } from "@compforge/spec-case";
+import { Case, Ideal, Link, Rule, Spec, Tmp, Why } from "@compforge/spec-case";
 
 class Service {
   @Spec("returns the notebook when it exists")
@@ -30,6 +30,7 @@ class Service {
   @Link("component://docs/notebook.md")
   @Why("stable keys keep retries idempotent")
   @Ideal("one persistence owner replaces dual writes")
+  @Tmp("dual-write during storage migration", { until: "all reads use the new store" })
   @Rule("keep tenant filtering in the query")
   get(): void {}
 }

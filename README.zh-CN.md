@@ -1,6 +1,6 @@
 # spec-case
 
-> 一套**代码内的 AI-native 标注体系 + 多语言工具链**：`@spec`/`@why`/`@ideal`/`@rule`/`@link` 这类标记就近长在代码上，由各语言工具抽成机器可读的资产供 AI 消费。它是**绑定到代码的 spec/case 资产**的共享真源，白盒侧被 [case-code-review (`ccr`)](https://github.com/qiankunli/case-code-review) 消费、黑盒侧被 test/eval/perf harness 消费。｜ English: [README.md](./README.md)
+> 一套**代码内的 AI-native 标注体系 + 多语言工具链**：`@spec`/`@why`/`@ideal`/`@tmp`/`@rule`/`@link` 这类标记就近长在代码上，由各语言工具抽成机器可读的资产供 AI 消费。它是**绑定到代码的 spec/case 资产**的共享真源，白盒侧被 [case-code-review (`ccr`)](https://github.com/qiankunli/case-code-review) 消费、黑盒侧被 test/eval/perf harness 消费。｜ English: [README.md](./README.md)
 
 ## 这是什么
 
@@ -10,7 +10,7 @@
 - `ccr` 把白盒投影**挂到**改动的评审 **unit** 上，作为函数级 checklist。
 
 评审 **unit** 是 `case` 的**评审侧孪生**：同一份"需求/契约"资产，两个消费者。
-`why`、`ideal`、`rule`、`link` 属于白盒结构化意图，只进入 `spec.json`，不改变黑盒 CaseSet。
+`why`、`ideal`、`tmp`、`rule`、`link` 属于白盒结构化意图，只进入 `spec.json`，不改变黑盒 CaseSet。
 
 ## 结构化意图注释
 
@@ -20,6 +20,7 @@
 - `spec` 记录代码应该保证什么。
 - `why` 记录代码只能展示 how 时，为什么选择当前结构、顺序或边界；它可以不依附 spec 独立存在。
 - `ideal` 记录摆脱当前约束后应收敛到的理想形态；它不是路线图承诺，也可以不依附 spec 独立存在。
+- `tmp` 记录临时措施及移除或替换它的退出条件。
 - `rule` 记录后续修改或评审时必须留意的约束。
 - `link` 通过显式的 `repo://` 或 `component://` 路径锚点，指向解释该诉求的设计上下文或相关 symbol。
 - `case` 在确有必要沉淀具体验证场景时补充，默认不是必填项。

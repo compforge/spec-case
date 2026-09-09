@@ -1,6 +1,6 @@
 # spec-case
 
-> An **in-code, AI-native annotation system + multi-language toolchain**: markers like `@spec`/`@why`/`@ideal`/`@rule`/`@link` live right on the code, distilled by per-language tools into a machine-readable asset for AI to consume. It is the shared source-of-truth for **spec/case assets bound to code**, used white-box by [case-code-review (`ccr`)](https://github.com/qiankunli/case-code-review) and black-box by test/eval/perf harnesses. ｜ 中文: [README.zh-CN.md](./README.zh-CN.md)
+> An **in-code, AI-native annotation system + multi-language toolchain**: markers like `@spec`/`@why`/`@ideal`/`@tmp`/`@rule`/`@link` live right on the code, distilled by per-language tools into a machine-readable asset for AI to consume. It is the shared source-of-truth for **spec/case assets bound to code**, used white-box by [case-code-review (`ccr`)](https://github.com/qiankunli/case-code-review) and black-box by test/eval/perf harnesses. ｜ 中文: [README.zh-CN.md](./README.zh-CN.md)
 
 ## What it is
 
@@ -10,7 +10,7 @@ A **spec** states the intent/contract of a code symbol. A CaseSet **case** is a 
 - `ccr` **attaches** the white-box projection to a changed review **unit** as a per-function checklist.
 
 A review **unit** is the review-side twin of a `case`: same "requirement/contract" asset, two consumers.
-`why`, `ideal`, `rule`, and `link` are white-box structured intent; they compile into `spec.json` and do not alter the black-box CaseSet.
+`why`, `ideal`, `tmp`, `rule`, and `link` are white-box structured intent; they compile into `spec.json` and do not alter the black-box CaseSet.
 
 ## Structured intent annotations
 
@@ -21,6 +21,7 @@ the implementation alone, while keeping it addressable and machine-readable:
 - `spec` records what the code is intended to guarantee.
 - `why` records why the symbol uses its current design, ordering, or boundary when code only reveals how.
 - `ideal` records the shape the symbol should converge toward when current constraints no longer apply; it is not a roadmap commitment.
+- `tmp` records a temporary measure and the condition for removing or replacing it.
 - `rule` records what a future change or review must keep in mind.
 - `link` points to design context or a related symbol through an explicit `repo://` or
   `component://` path anchor.
