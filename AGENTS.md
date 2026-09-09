@@ -25,6 +25,8 @@ spec-case 是**绑定到代码的 spec/case 资产的共享真源**，被两类�
 
 ## 关键约定
 
+- **版本递增**：持续迭代期间，常规改动（包括新增 marker/API）默认只 bump patch；minor / major 仅在用户明确要求时调整。各语言发布包维护自己的版本。
+
 - **身份与产物分层**：`case_id` 在 CaseSet 内对齐 case，`symbol-id` 把 spec/case 绑定到代码符号；CaseSet 是黑盒运行输入，`spec.json` 是白盒 review 投影，两者共享词汇与绑定契约但 shape 不同。
 - **symbol-id 仓内、fqn 跨仓**：`symbol-id`（relpath）是仓内 key；每条 entry 另带可选 `fqn`（符号的语言原生全限定名——Python 点号 import 路径 / Go `importpath.Symbol`），是跨仓引用的 location-independent 身份。评审仓引用**依赖**里的符号（如 framework SDK 的类型）时，依赖 relpath 在本仓不存在，只有 fqn 两头对得上。fqn 取法与语言相关（Py `__init__.py` 包链、Go `go.mod`），取不到则省略。
 - **spec / case / why / ideal / tmp / link / rule 都挂 symbol**（供白盒评审消费的**七类上下文**）：spec 记录契约，case 记录验证场景，why 记录代码无法表达的当前设计理由，ideal 记录摆脱当前约束后的理想形态，tmp 记录临时措施与退出条件，link 用 `repo://` / `component://` LinkRef 指向策展的 see-also，rule 记录审查准则。Component 是仓内具有独立 build、验证和发布生命周期的服务组件，其归属由消费方 Project Knowledge 提供，不由 spec-case 按语言猜测。why / ideal / tmp 可不依附 spec 独立存在；七类 marker 都可挂函数、方法或类/类型，供 review 按 symbol 回溯注入。见 `docs/concepts.md`。
