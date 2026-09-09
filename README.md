@@ -21,7 +21,7 @@ the implementation alone, while keeping it addressable and machine-readable:
 - `spec` records what the code is intended to guarantee.
 - `why` records why the symbol uses its current design, ordering, or boundary when code only reveals how.
 - `ideal` records the shape the symbol should converge toward when current constraints no longer apply; it is not a roadmap commitment.
-- `tmp` records a temporary measure and the condition for removing or replacing it.
+- `tmp` records a temporary measure, optionally with the condition for removing or replacing it.
 - `rule` records what a future change or review must keep in mind.
 - `link` points to design context or a related symbol through an explicit `repo://` or
   `component://` path anchor.

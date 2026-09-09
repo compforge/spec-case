@@ -60,3 +60,5 @@ npx specgen <src-dir> -o spec.json --root <repo-root> --check
 ```
 
 `specgen` 使用 TypeScript Compiler API 静态解析源码，不 import 或执行被扫描项目。
+
+`until` is optional: `@Tmp("keep fallback")` records the measure without an exit condition.

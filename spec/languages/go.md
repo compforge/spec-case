@@ -81,9 +81,13 @@ type PhaseEventMiddleware struct{ events []Event }
 ## tmp
 
 ```go
+// +tmp:text=`keep fallback`
+func Fallback() {}
+
 // +tmp:text=`keep legacy conversion`,until=`all supported clients use v2`
 func NormalizeRequest() {}
 ```
 
-`text` 与 `until` 都必填；生成 `tmps: [{text, until}]`。多个标记保持声明顺序。
+`text` 必填，`until` 选填；未填时生成 `tmps: [{text}]`，填写时生成 `tmps: [{text, until}]`。
+多个标记保持声明顺序。
 完整语义、字段与提取约束见 [Tmp 契约](../tmp.md)。

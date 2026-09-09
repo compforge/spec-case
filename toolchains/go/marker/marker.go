@@ -27,7 +27,7 @@ type Case struct {
 	Group  string
 }
 
-// Tmp is a temporary measure and the condition for removing or replacing it.
+// Tmp is a temporary measure and an optional condition for removing or replacing it.
 type Tmp struct {
 	Text  string
 	Until string
@@ -83,7 +83,7 @@ func Parse(doc string) Document {
 			args := parseArgs(strings.TrimPrefix(line, "+tmp:"))
 			text := strings.Join(strings.Fields(args["text"]), " ")
 			until := strings.Join(strings.Fields(args["until"]), " ")
-			if text != "" && until != "" {
+			if text != "" {
 				out.Tmps = append(out.Tmps, Tmp{Text: text, Until: until})
 			}
 		case strings.HasPrefix(line, "+link="):

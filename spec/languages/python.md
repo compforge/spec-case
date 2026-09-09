@@ -115,9 +115,13 @@ from spec_case import spec, case, why, ideal, tmp, link, rule
 ## tmp
 
 ```python
+@tmp("keep fallback")
+def fallback(request): ...
+
 @tmp("keep legacy conversion", until="all supported clients use v2")
 def normalize_request(request): ...
 ```
 
-`text` 与 `until` 都必填；生成 `tmps: [{text, until}]`。多个标记保持声明顺序。
+`text` 必填，`until` 选填；未填时生成 `tmps: [{text}]`，填写时生成 `tmps: [{text, until}]`。
+多个标记保持声明顺序。
 完整语义、字段与提取约束见 [Tmp 契约](../tmp.md)。

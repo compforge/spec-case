@@ -217,7 +217,7 @@
       }
     },
     {
-      "name": "tmp_requires_nonempty_text_and_until",
+      "name": "tmp_allows_missing_or_blank_until_but_requires_text",
       "source": {
         "python": "@tmp(\"missing condition\")\n@tmp(\"empty condition\", until=\"  \")\n@tmp(\"\", until=\"ready\")\ndef run(): ...\n",
         "go": "package fixture\n\n// +tmp:text=`missing condition`\n// +tmp:text=`empty condition`,until=`  `\n// +tmp:text=``,until=`ready`\nfunc Run() {}\n",
@@ -230,7 +230,9 @@
         "typescript": "fixture.ts::run",
         "rust": "fixture.rs::run"
       },
-      "expected_entry": null
+      "expected_entry": {
+        "specs": [{ "cases": [], "tmps": [{ "text": "missing condition" }, { "text": "empty condition" }] }]
+      }
     }
   ]
 }

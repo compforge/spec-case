@@ -33,7 +33,7 @@ type Case struct {
 // Tmp is the spec.json projection of a temporary measure.
 type Tmp struct {
 	Text  string `json:"text"`
-	Until string `json:"until"`
+	Until string `json:"until,omitempty"`
 }
 
 // Spec is one contract bound to a code symbol.

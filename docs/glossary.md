@@ -26,4 +26,4 @@
 | **spec.json** | `specgen` 的生成态产物，按 symbol-id 索引 `{fqn?, specs[]}`。`ccr` 的 `SpecBuilder` 入口。 |
 | **specgen** | 语言相关的静态抽取器：扫代码标记（AST）→ 编译成 case + `spec.json`。按本仓契约实现，不在本仓内。 |
 
-- **tmp**：绑定到 symbol 的临时措施及退出条件，投影为 `tmps: [{text, until}]`；见 [Tmp 契约](../spec/tmp.md)。
+- **tmp**：绑定到 symbol 的临时措施及可选的退出条件，投影为 `tmps: [{text, until?}]`；见 [Tmp 契约](../spec/tmp.md)。

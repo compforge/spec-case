@@ -39,7 +39,7 @@ export interface SpecCase {
 
 export interface SpecTmp {
   text: string;
-  until: string;
+  until?: string;
 }
 
 export interface SpecContract {
@@ -223,8 +223,12 @@ function appendIdeal(entry: SpecContract, text: string): void {
 function appendTmp(entry: SpecContract, text: string, until: string): void {
   text = collapseWhitespace(text);
   until = collapseWhitespace(until);
-  if (text !== "" && until !== "") {
-    (entry.tmps ??= []).push({ text, until });
+  if (text !== "") {
+    const item: SpecTmp = { text };
+    if (until !== "") {
+      item.until = until;
+    }
+    (entry.tmps ??= []).push(item);
   }
 }
 

@@ -181,6 +181,7 @@ def test_markers_are_noops():
     def fn():
         return 1
 
+    assert spec_case.tmp("keep fallback")(fn) is fn
     assert spec_case.tmp("keep fallback", until="migration verified")(fn) is fn
     assert spec_case.spec("x", id="named")(fn) is fn
     assert spec_case.case("id", "d", expect="200")(fn) is fn
@@ -232,6 +233,9 @@ def test_tmp_literals_and_type_binding():
                 "tmps": [{"text": "keep fallback", "until": "migration verified"}],
             }],
         },
+        "adapter.py::unresolved": {
+            "specs": [{"cases": [], "tmps": [{"text": "keep fallback"}]}],
+        },
     }
 
 
@@ -241,4 +245,16 @@ def test_check_reports_tmp_exit_condition_drift(tmp_path):
     args = [str(src), "-o", str(out), "--root", str(src), "--check"]
     assert specgen.main(args) == 0
     (src / "a.py").write_text(source.replace("migration started", "migration verified"))
+    assert specgen.main(args) == 1
+
+
+def test_check_reports_added_or_removed_tmp_exit_condition(tmp_path):
+    source = '@tmp("keep fallback")\ndef run(): ...\n'
+    src, out = _gen(tmp_path, source)
+    args = [str(src), "-o", str(out), "--root", str(src), "--check"]
+    assert specgen.main(args) == 0
+    (src / "a.py").write_text(source.replace('"keep fallback")', '"keep fallback", until="ready")'))
+    assert specgen.main(args) == 1
+    assert specgen.main(args[:-1]) == 0
+    (src / "a.py").write_text(source)
     assert specgen.main(args) == 1

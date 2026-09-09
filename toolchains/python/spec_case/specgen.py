@@ -115,8 +115,11 @@ def _entry_for(node: ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef) -> d
         elif name == "tmp":
             text = _str(_arg(dec, 0))
             until = _str(_kw(dec, "until"))
-            if text and until:
-                tmps.append({"text": text, "until": until})
+            if text:
+                item = {"text": text}
+                if until:
+                    item["until"] = until
+                tmps.append(item)
         elif name == "link":
             if (ref := _str(_arg(dec, 0))) and _valid_link_ref(ref):
                 links.append(ref)
