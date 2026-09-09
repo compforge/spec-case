@@ -22,6 +22,7 @@ pub struct Case {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Tmp {
     pub text: String,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
     pub until: String,
 }
 

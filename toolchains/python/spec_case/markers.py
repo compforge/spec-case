@@ -47,8 +47,8 @@ def ideal(text: str) -> Callable[[F], F]:
     return _identity
 
 
-def tmp(text: str, *, until: str) -> Callable[[F], F]:
-    """Temporary measure (0..N), with the condition for removing or replacing it."""
+def tmp(text: str, *, until: str = "") -> Callable[[F], F]:
+    """Temporary measure (0..N), with an optional condition for removing or replacing it."""
     return _identity
 
 

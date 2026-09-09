@@ -5,7 +5,7 @@ export interface CaseOptions {
 }
 
 export interface TmpOptions {
-  until: string;
+  until?: string;
 }
 
 export interface SpecOptions {
@@ -52,8 +52,8 @@ export function Ideal(_text: string): SymbolDecorator {
   return NOOP_DECORATOR;
 }
 
-/** A temporary measure with an explicit exit condition; no runtime behavior. */
-export function Tmp(_text: string, _options: TmpOptions): SymbolDecorator {
+/** A temporary measure with an optional exit condition; no runtime behavior. */
+export function Tmp(_text: string, _options: TmpOptions = {}): SymbolDecorator {
   return NOOP_DECORATOR;
 }
 

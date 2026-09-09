@@ -233,6 +233,7 @@ test("returns an empty index for syntax errors", () => {
 test("marker decorators do not replace classes or methods", () => {
   @Rule("request scoped only")
   class Example {
+    @Tmp("keep fallback")
     @Tmp("keep fallback", { until: "migration verified" })
     @Spec("returns one")
     @Case("happy", "returns one")
@@ -285,7 +286,7 @@ test("extracts trees and detects drift", async () => {
 });
 
 
-test("Tmp requires literal text and until, and binds to types", () => {
+test("Tmp requires literal text, accepts optional until, and binds to types", () => {
   const out = extractFile(`
 @markers.Tmp("keep fallback", { until: "migration verified" })
 class Adapter {}
@@ -296,11 +297,16 @@ class Dynamic {
   other(): void {}
   @Tmp("missing condition", {})
   missing(): void {}
+  @Tmp("no options")
+  plain(): void {}
 }
 `, "adapter.ts");
   assert.deepEqual(out, {
     "adapter.ts::Adapter": { specs: [{ cases: [], tmps: [
       { text: "keep fallback", until: "migration verified" },
     ] }] },
+    "adapter.ts::Dynamic.run": { specs: [{ cases: [], tmps: [{ text: "keep fallback" }] }] },
+    "adapter.ts::Dynamic.missing": { specs: [{ cases: [], tmps: [{ text: "missing condition" }] }] },
+    "adapter.ts::Dynamic.plain": { specs: [{ cases: [], tmps: [{ text: "no options" }] }] },
   });
 });

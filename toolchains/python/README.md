@@ -55,3 +55,5 @@ uv run specgen <src-dir> -o spec.json --check    # CI gate: exit 1 if spec.json 
 `--check` compares the committed `spec.json` against the current markers and fails
 if a symbol was renamed/removed or a marker changed. specgen parses with `ast` and
 never imports or runs your code.
+
+`until` is optional: `@tmp("keep fallback")` records the measure without an exit condition.

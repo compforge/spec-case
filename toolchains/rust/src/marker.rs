@@ -72,7 +72,7 @@ pub fn parse_markers(doc: &str) -> MarkerDocument {
                 .split_whitespace()
                 .collect::<Vec<_>>()
                 .join(" ");
-            if !text.is_empty() && !until.is_empty() {
+            if !text.is_empty() {
                 out.tmps.push(MarkerTmp { text, until });
             }
         } else if let Some(value) = line.strip_prefix("+link=") {

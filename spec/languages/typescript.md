@@ -114,13 +114,20 @@ npx specgen <src-dir> -o spec.json --root <repo-root> --check
 
 ```typescript
 class Adapter {
+  @Tmp("keep fallback")
+  fallback(): void {}
+
   @Tmp("keep legacy conversion", { until: "all supported clients use v2" })
   normalizeRequest(): void {}
 }
+
+/** @tmp text=`keep fallback` */
+function fallback(): void {}
 
 /** @tmp text=`keep legacy conversion`,until=`all supported clients use v2` */
 function normalizeRequest(): void {}
 ```
 
-`text` 与 `until` 都必填；生成 `tmps: [{text, until}]`。多个标记保持声明顺序。
+`text` 必填，`until` 选填；未填时生成 `tmps: [{text}]`，填写时生成 `tmps: [{text, until}]`。
+多个标记保持声明顺序。
 完整语义、字段与提取约束见 [Tmp 契约](../tmp.md)。

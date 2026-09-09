@@ -12,7 +12,7 @@
     },
     "tmp": {
       "type": "object",
-      "required": ["text", "until"],
+      "required": ["text"],
       "additionalProperties": false,
       "properties": {
         "text": { "type": "string", "pattern": "\\S", "description": "The temporary measure owned by this symbol." },
