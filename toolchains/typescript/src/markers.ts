@@ -4,6 +4,10 @@ export interface CaseOptions {
   forbid?: string;
 }
 
+export interface TmpOptions {
+  until: string;
+}
+
 export interface SpecOptions {
   id?: string;
 }
@@ -45,6 +49,11 @@ export function Why(_text: string): SymbolDecorator {
 }
 
 export function Ideal(_text: string): SymbolDecorator {
+  return NOOP_DECORATOR;
+}
+
+/** A temporary measure with an explicit exit condition; no runtime behavior. */
+export function Tmp(_text: string, _options: TmpOptions): SymbolDecorator {
   return NOOP_DECORATOR;
 }
 

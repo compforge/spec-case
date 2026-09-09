@@ -1,4 +1,4 @@
-"""The six co-location markers, as no-op decorators.
+"""The seven co-location markers, as no-op decorators.
 
 They only *mark* functions for specgen's static extraction; at runtime each
 returns the function unchanged, so importing and annotating costs nothing and
@@ -44,6 +44,11 @@ def why(text: str) -> Callable[[F], F]:
 
 def ideal(text: str) -> Callable[[F], F]:
     """Ideal shape (0..N): where this symbol should converge without current constraints."""
+    return _identity
+
+
+def tmp(text: str, *, until: str) -> Callable[[F], F]:
+    """Temporary measure (0..N), with the condition for removing or replacing it."""
     return _identity
 
 

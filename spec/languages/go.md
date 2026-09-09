@@ -26,10 +26,10 @@ func (s *Service) CreateNotebook(ctx context.Context, req *CreateReq) (*Notebook
 - `+link=<ref>` — 0..N 条，作者策展的"改它时该顺带看的东西"。仓内 ref 必须使用
   `repo://` 或 `component://` 路径锚点；追加 `::symbol` 时指向另一代码 symbol。见
   [LinkRef 契约](../link-ref.md)和[概念](../../docs/concepts.md#link)。
-- `+rule=\`...\`` — 0..N 条，**审查准则**（评审它时盯什么），是 `rule.json` 路径级准则的共置细化；rule 是 reviewer 指令、不是代码已满足的契约（那是 spec）。见 [概念](../docs/concepts.md#rule)。
+- `+rule=\`...\`` — 0..N 条，**审查准则**（评审它时盯什么），是 `rule.json` 路径级准则的共置细化；rule 是 reviewer 指令、不是代码已满足的契约（那是 spec）。见 [概念](../../docs/concepts.md#rule)。
 - 文本含逗号/换行时用反引号包裹。
 
-**六个 marker（`+spec`/`+case`/`+why`/`+ideal`/`+link`/`+rule`）都可挂在类型（`type`）上**，描述该类型整体（契约/用例/当前设计理由/理想形态/see-also/用法约束）。其中 `+rule` 尤其常用——表达**类型级用法约束**："用到这个类型时盯什么"，供 review 在 diff *引用* 该类型时回溯注入。doc 注释挂在 `type` 声明上（单条 `type X` 挂在声明上，`type ( ... )` 组内挂在各 spec 上）：
+**七个 marker（`+spec`/`+case`/`+why`/`+ideal`/`+tmp`/`+link`/`+rule`）都可挂在类型（`type`）上**，描述该类型整体（契约/用例/当前设计理由/理想形态/临时措施与退出条件/see-also/用法约束）。其中 `+rule` 尤其常用——表达**类型级用法约束**："用到这个类型时盯什么"，供 review 在 diff *引用* 该类型时回溯注入。doc 注释挂在 `type` 声明上（单条 `type X` 挂在声明上，`type ( ... )` 组内挂在各 spec 上）：
 
 ```go
 // +rule=`仅 per-request 使用——禁缓存/复用（events 无界累积）`
@@ -77,3 +77,13 @@ type PhaseEventMiddleware struct{ events []Event }
 `go run github.com/compforge/spec-case/toolchains/go/cmd/specgen -root <repo-root> -o spec.json <src-dir>`
 直接从 Git 依赖执行。`marker/` 是 marker grammar 的复用入口，`specgen/` 负责投影为
 `spec.json`；两者都只做 `go/ast` 静态分析，不编译 / 不运行被测代码。
+
+## tmp
+
+```go
+// +tmp:text=`keep legacy conversion`,until=`all supported clients use v2`
+func NormalizeRequest() {}
+```
+
+`text` 与 `until` 都必填；生成 `tmps: [{text, until}]`。多个标记保持声明顺序。
+完整语义、字段与提取约束见 [Tmp 契约](../tmp.md)。

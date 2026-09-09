@@ -20,6 +20,12 @@ pub struct Case {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Tmp {
+    pub text: String,
+    pub until: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Spec {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
@@ -31,6 +37,8 @@ pub struct Spec {
     pub whys: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub ideals: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub tmps: Vec<Tmp>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub links: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -227,6 +235,14 @@ fn entry_for(attrs: &[Attribute]) -> Option<Entry> {
                 .collect(),
             whys: document.whys,
             ideals: document.ideals,
+            tmps: document
+                .tmps
+                .into_iter()
+                .map(|item| Tmp {
+                    text: item.text,
+                    until: item.until,
+                })
+                .collect(),
             links: document.links,
             rules: document.rules,
         }],
@@ -238,6 +254,7 @@ fn has_content(document: &MarkerDocument) -> bool {
         || !document.cases.is_empty()
         || !document.whys.is_empty()
         || !document.ideals.is_empty()
+        || !document.tmps.is_empty()
         || !document.links.is_empty()
         || !document.rules.is_empty()
 }

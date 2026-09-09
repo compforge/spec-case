@@ -1,4 +1,4 @@
-// Command specgen statically extracts the +spec/+case/+why/+ideal/+link/+rule doc-comment
+// Command specgen statically extracts the +spec/+case/+why/+ideal/+tmp/+link/+rule doc-comment
 // markers from Go sources into spec.json — the artifact ccr's SpecBuilder
 // consumes. Discovery is pure go/ast analysis: the scanned code is never
 // imported or run, so the markers cost nothing at build time and work even when
@@ -30,6 +30,12 @@ type Case struct {
 	Forbid string `json:"forbid,omitempty"`
 }
 
+// Tmp is the spec.json projection of a temporary measure.
+type Tmp struct {
+	Text  string `json:"text"`
+	Until string `json:"until"`
+}
+
 // Spec is one contract bound to a code symbol.
 type Spec struct {
 	ID     string   `json:"id,omitempty"`
@@ -37,6 +43,7 @@ type Spec struct {
 	Cases  []Case   `json:"cases"` // required by the schema; may be empty
 	Whys   []string `json:"whys,omitempty"`
 	Ideals []string `json:"ideals,omitempty"`
+	Tmps   []Tmp    `json:"tmps,omitempty"`
 	Links  []string `json:"links,omitempty"`
 	Rules  []string `json:"rules,omitempty"`
 }
@@ -64,12 +71,15 @@ func parseMarkers(doc *ast.CommentGroup) (Entry, bool) {
 		Links:  parsed.Links,
 		Rules:  parsed.Rules,
 	}
+	for _, item := range parsed.Tmps {
+		s.Tmps = append(s.Tmps, Tmp{Text: item.Text, Until: item.Until})
+	}
 	for _, c := range parsed.Cases {
 		s.Cases = append(s.Cases, Case{
 			ID: c.ID, Desc: c.Desc, Input: c.Input, Expect: c.Expect, Forbid: c.Forbid,
 		})
 	}
-	if s.Spec == "" && len(s.Cases) == 0 && len(s.Whys) == 0 && len(s.Ideals) == 0 && len(s.Links) == 0 && len(s.Rules) == 0 {
+	if s.Spec == "" && len(s.Cases) == 0 && len(s.Whys) == 0 && len(s.Ideals) == 0 && len(s.Tmps) == 0 && len(s.Links) == 0 && len(s.Rules) == 0 {
 		return Entry{}, false
 	}
 	return Entry{Specs: []Spec{s}}, true

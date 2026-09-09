@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { Case, Ideal, Link, Rule, Spec, Why } from "../src/markers.js";
+import { Case, Ideal, Link, Rule, Spec, Tmp, Why } from "../src/markers.js";
 import { canonical, check, extractFile, extractTree } from "../src/specgen.js";
 
 interface ConformanceFixture {
@@ -233,6 +233,7 @@ test("returns an empty index for syntax errors", () => {
 test("marker decorators do not replace classes or methods", () => {
   @Rule("request scoped only")
   class Example {
+    @Tmp("keep fallback", { until: "migration verified" })
     @Spec("returns one")
     @Case("happy", "returns one")
     @Link("component://docs/example.md")
@@ -281,4 +282,25 @@ test("extracts trees and detects drift", async () => {
   assert.equal(await check(output, index), 0);
   await writeFile(output, "{}\n");
   assert.equal(await check(output, index), 1);
+});
+
+
+test("Tmp requires literal text and until, and binds to types", () => {
+  const out = extractFile(`
+@markers.Tmp("keep fallback", { until: "migration verified" })
+class Adapter {}
+class Dynamic {
+  @Tmp("keep fallback", { until: dynamicCondition })
+  run(): void {}
+  @Tmp(dynamicText, { until: "ready" })
+  other(): void {}
+  @Tmp("missing condition", {})
+  missing(): void {}
+}
+`, "adapter.ts");
+  assert.deepEqual(out, {
+    "adapter.ts::Adapter": { specs: [{ cases: [], tmps: [
+      { text: "keep fallback", until: "migration verified" },
+    ] }] },
+  });
 });

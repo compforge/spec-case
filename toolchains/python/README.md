@@ -1,6 +1,6 @@
 # spec-case (Python)
 
-In-code **spec / case / why / ideal / link / rule** markers + **specgen**, the static extractor
+In-code **spec / case / why / ideal / tmp / link / rule** markers + **specgen**, the static extractor
 that compiles them into `spec.json` — the artifact [`ccr`](https://github.com/qiankunli/case-code-review)
 consumes. Part of [spec-case](https://github.com/compforge/spec-case); see the repo
 for concepts, the symbol-id contract, and the Go reference implementation.
@@ -21,13 +21,14 @@ unchanged, so importing and annotating costs nothing and never changes behavior.
 They only *mark* functions for specgen's static (`ast`) extraction.
 
 ```python
-from spec_case import spec, case, why, ideal, link, rule
+from spec_case import spec, case, why, ideal, tmp, link, rule
 
 @spec("(tenant, name) unique; duplicate create -> ConflictError")
 @case("happy_minimal", "only Name given should create", expect="201; body.id non-empty")
 @case("duplicate_name", "duplicate Name", expect="409", forbid="a second row is written")
 @why("database uniqueness is the cross-replica authority")
 @ideal("one persistence owner replaces dual writes")
+@tmp("dual-write during storage migration", until="all reads use the new store")
 @link("component://docs/tenancy.md")
 @rule("hot request path — watch new synchronous DB calls")
 def create_notebook(req): ...

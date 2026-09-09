@@ -8,6 +8,7 @@ const JSDOC_MARKERS = new Map([
   ["case", "case"],
   ["why", "why"],
   ["ideal", "ideal"],
+  ["tmp", "tmp"],
   ["link", "link"],
   ["see", "link"],
   ["rule", "rule"],
@@ -17,6 +18,7 @@ const DECORATOR_MARKERS = new Map([
   ["Case", "case"],
   ["Why", "why"],
   ["Ideal", "ideal"],
+  ["Tmp", "tmp"],
   ["Link", "link"],
   ["Rule", "rule"],
 ]);
@@ -35,12 +37,18 @@ export interface SpecCase {
   forbid?: string;
 }
 
+export interface SpecTmp {
+  text: string;
+  until: string;
+}
+
 export interface SpecContract {
   id?: string;
   spec?: string;
   cases: SpecCase[];
   whys?: string[];
   ideals?: string[];
+  tmps?: SpecTmp[];
   links?: string[];
   rules?: string[];
 }
@@ -167,6 +175,7 @@ function hasContent(entry: SpecContract): boolean {
       entry.cases.length > 0 ||
       entry.whys?.length ||
       entry.ideals?.length ||
+      entry.tmps?.length ||
       entry.links?.length ||
       entry.rules?.length,
   );
@@ -209,6 +218,14 @@ function appendIdeal(entry: SpecContract, text: string): void {
     return;
   }
   (entry.ideals ??= []).push(text);
+}
+
+function appendTmp(entry: SpecContract, text: string, until: string): void {
+  text = collapseWhitespace(text);
+  until = collapseWhitespace(until);
+  if (text !== "" && until !== "") {
+    (entry.tmps ??= []).push({ text, until });
+  }
 }
 
 function appendRule(entry: SpecContract, text: string): void {
@@ -286,6 +303,9 @@ function applyJSDocMarkers(node: ts.Node, entry: PendingSpecEntry): void {
       appendWhy(entry, comment);
     } else if (name === "ideal") {
       appendIdeal(entry, comment);
+    } else if (name === "tmp") {
+      const args = parseMarkerArgs(comment);
+      appendTmp(entry, args.text ?? "", args.until ?? "");
     } else if (name === "link") {
       appendLink(entry, comment);
     } else if (name === "rule") {
@@ -337,6 +357,8 @@ function applyDecoratorMarkers(node: ts.Node, entry: PendingSpecEntry): void {
       appendWhy(entry, literalText(call.arguments[0]));
     } else if (name === "ideal") {
       appendIdeal(entry, literalText(call.arguments[0]));
+    } else if (name === "tmp") {
+      appendTmp(entry, literalText(call.arguments[0]), objectString(call.arguments[1], "until"));
     } else if (name === "link") {
       appendLink(entry, literalText(call.arguments[0]));
     } else if (name === "rule") {
