@@ -115,6 +115,18 @@
         "method": "GET",
         "path": "/file\u007f"
       }
+    },
+    {
+      "id": "missing_input"
+    },
+    {
+      "id": "array_method",
+      "input": {
+        "protocol": "http",
+        "method": [
+          "GET"
+        ]
+      }
     }
   ]
 }

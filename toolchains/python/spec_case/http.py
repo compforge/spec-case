@@ -13,7 +13,7 @@ def validate_http_case(case: Case) -> None:
     stimulus = case.input
     if stimulus.get("protocol") != "http":
         raise ValueError("HTTP Case input.protocol must be http")
-    if stimulus.get("method") not in _METHODS:
+    if not isinstance(stimulus.get("method"), str) or stimulus["method"] not in _METHODS:
         raise ValueError("Invalid HTTP Case method")
     if set(stimulus) - {"protocol", "method", "path", "headers", "body"}:
         raise ValueError("Unknown HTTP Case input field; targets belong to execution")

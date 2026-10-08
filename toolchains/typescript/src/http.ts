@@ -25,7 +25,7 @@ export function validateHttpCase(value: Case): asserts value is HttpCase {
   validateCase(value);
   const input = value.input;
   if (input.protocol !== "http") throw new Error("HTTP Case input.protocol must be http");
-  if (!["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"].includes(String(input.method))) throw new Error("Invalid HTTP Case method");
+  if (typeof input.method !== "string" || !["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"].includes(input.method)) throw new Error("Invalid HTTP Case method");
   if (Object.keys(input).some(key => !["protocol", "method", "path", "headers", "body"].includes(key))) throw new Error("Unknown HTTP Case input field; targets belong to execution");
   if (input.path !== undefined && (typeof input.path !== "string" || !input.path.startsWith("/") || input.path.startsWith("//") || /[\\\x00-\x1f\x7f]/.test(input.path))) throw new Error("HTTP Case path must be origin-relative");
   if (input.body !== undefined && typeof input.body !== "string") throw new Error("HTTP Case body must be a string");
