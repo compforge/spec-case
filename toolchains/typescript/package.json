@@ -1,6 +1,6 @@
 {
   "name": "@compforge/spec-case",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "TypeScript spec/case assets, markers, and the specgen static extractor.",
   "type": "module",
   "license": "Apache-2.0",
@@ -22,6 +22,10 @@
     "./model": {
       "types": "./dist/src/model.d.ts",
       "import": "./dist/src/model.js"
+    },
+    "./http": {
+      "types": "./dist/src/http.d.ts",
+      "import": "./dist/src/http.js"
     }
   },
   "bin": {

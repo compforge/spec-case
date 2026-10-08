@@ -1,0 +1,132 @@
+{
+  "valid": [
+    {
+      "id": "file_download",
+      "input": {
+        "protocol": "http",
+        "method": "GET",
+        "headers": {
+          "Range": "bytes=0-1023"
+        }
+      },
+      "judge": {
+        "e2e": {
+          "http": {
+            "status": [
+              200,
+              206
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "observe",
+      "input": {
+        "protocol": "http",
+        "method": "HEAD",
+        "path": "/health"
+      }
+    },
+    {
+      "id": "create",
+      "input": {
+        "protocol": "http",
+        "method": "POST",
+        "body": "{}"
+      }
+    }
+  ],
+  "invalid": [
+    {
+      "id": "bad",
+      "input": {
+        "protocol": "https",
+        "method": "GET"
+      }
+    },
+    {
+      "id": "bad",
+      "input": {
+        "protocol": "http",
+        "method": "TRACE"
+      }
+    },
+    {
+      "id": "bad",
+      "input": {
+        "protocol": "http",
+        "method": "GET",
+        "url": "https://runtime.test"
+      }
+    },
+    {
+      "id": "bad",
+      "input": {
+        "protocol": "http",
+        "method": "GET",
+        "path": "//other.test"
+      }
+    },
+    {
+      "id": "bad",
+      "input": {
+        "protocol": "http",
+        "method": "GET",
+        "headers": {
+          "Authorization": "secret"
+        }
+      }
+    },
+    {
+      "id": "bad",
+      "input": {
+        "protocol": "http",
+        "method": "GET"
+      },
+      "judge": {
+        "e2e": {
+          "http": {
+            "status": []
+          }
+        }
+      }
+    },
+    {
+      "id": "bad",
+      "input": {
+        "protocol": "http",
+        "method": "GET",
+        "path": "/\t/other.test"
+      }
+    },
+    {
+      "id": "bad",
+      "input": {
+        "protocol": "http",
+        "method": "GET",
+        "path": "/file\u0000"
+      }
+    },
+    {
+      "id": "bad",
+      "input": {
+        "protocol": "http",
+        "method": "GET",
+        "path": "/file\u007f"
+      }
+    },
+    {
+      "id": "missing_input"
+    },
+    {
+      "id": "array_method",
+      "input": {
+        "protocol": "http",
+        "method": [
+          "GET"
+        ]
+      }
+    }
+  ]
+}

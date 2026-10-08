@@ -251,15 +251,21 @@ export function validateCaseSet(caseSet: CaseSet): void {
         throw new Error(`case ${item.id}: requires unknown source '${source}'`);
       }
     }
-    for (const face of Object.keys(item.judge ?? {})) {
-      if (!FACE_SET.has(face)) throw new Error(`case ${item.id}: unknown judge face '${face}'`);
-    }
-    if (item.binding && !SYMBOL_ID_PATTERN.test(item.binding.symbol_id)) {
-      throw new Error(`case ${item.id}: invalid binding symbol_id '${item.binding.symbol_id}'`);
-    }
-    if (item.binding?.spec_id && !CASE_ID_PATTERN.test(item.binding.spec_id)) {
-      throw new Error(`case ${item.id}: invalid binding spec_id '${item.binding.spec_id}'`);
-    }
+    validateCase(item);
+  }
+}
+
+/** Validate standalone identity and judgment metadata; CaseSet validates references and uniqueness. */
+export function validateCase(item: Case): void {
+  if (!CASE_ID_PATTERN.test(item.id)) throw new Error(`case with invalid id: '${item.id}'`);
+  for (const face of Object.keys(item.judge ?? {})) {
+    if (!FACE_SET.has(face)) throw new Error(`case ${item.id}: unknown judge face '${face}'`);
+  }
+  if (item.binding && !SYMBOL_ID_PATTERN.test(item.binding.symbol_id)) {
+    throw new Error(`case ${item.id}: invalid binding symbol_id '${item.binding.symbol_id}'`);
+  }
+  if (item.binding?.spec_id && !CASE_ID_PATTERN.test(item.binding.spec_id)) {
+    throw new Error(`case ${item.id}: invalid binding spec_id '${item.binding.spec_id}'`);
   }
 }
 
