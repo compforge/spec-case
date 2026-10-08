@@ -53,7 +53,7 @@ func ValidateHTTPCase(item Case) error {
 			return fmt.Errorf("invalid HTTP Case %s", key)
 		}
 	}
-	if input.Path != nil && (!strings.HasPrefix(*input.Path, "/") || strings.HasPrefix(*input.Path, "//") || strings.ContainsAny(*input.Path, "\\\r\n")) {
+	if input.Path != nil && (!strings.HasPrefix(*input.Path, "/") || strings.HasPrefix(*input.Path, "//") || strings.ContainsFunc(*input.Path, func(r rune) bool { return r == '\\' || r < 32 || r == 127 })) {
 		return fmt.Errorf("HTTP Case path must be origin-relative")
 	}
 	for key, value := range input.Headers {

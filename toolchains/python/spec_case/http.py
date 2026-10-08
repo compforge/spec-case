@@ -18,7 +18,7 @@ def validate_http_case(case: Case) -> None:
     if set(stimulus) - {"protocol", "method", "path", "headers", "body"}:
         raise ValueError("Unknown HTTP Case input field; targets belong to execution")
     path = stimulus.get("path")
-    if "path" in stimulus and (not isinstance(path, str) or not path.startswith("/") or path.startswith("//") or any(c in path for c in "\\\r\n")):
+    if "path" in stimulus and (not isinstance(path, str) or not path.startswith("/") or path.startswith("//") or any(c == "\\" or ord(c) < 32 or ord(c) == 127 for c in path)):
         raise ValueError("HTTP Case path must be origin-relative")
     if "body" in stimulus and not isinstance(stimulus["body"], str):
         raise ValueError("HTTP Case body must be a string")

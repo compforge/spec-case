@@ -32,7 +32,7 @@
         },
         "path": {
           "type": "string",
-          "pattern": "^/(?!/)[^\\\\\\r\\n]*$"
+          "pattern": "^/(?!/)[^\\\\\\x00-\\x1f\\x7f]*$"
         },
         "headers": {
           "type": "object",

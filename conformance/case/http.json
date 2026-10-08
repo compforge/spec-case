@@ -91,6 +91,30 @@
           }
         }
       }
+    },
+    {
+      "id": "bad",
+      "input": {
+        "protocol": "http",
+        "method": "GET",
+        "path": "/\t/other.test"
+      }
+    },
+    {
+      "id": "bad",
+      "input": {
+        "protocol": "http",
+        "method": "GET",
+        "path": "/file\u0000"
+      }
+    },
+    {
+      "id": "bad",
+      "input": {
+        "protocol": "http",
+        "method": "GET",
+        "path": "/file\u007f"
+      }
     }
   ]
 }
