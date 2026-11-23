@@ -31,7 +31,18 @@ export interface Binding {
 
 export type Judge = Partial<Record<Face, Readonly<Record<string, unknown>>>>;
 
+/**
+ * @spec A case parameter declares a value type. Its source and literal default are independently optional.
+ * @see {@link repo://spec/case.schema.json}
+ */
+export interface Param {
+  type: string;
+  source?: string;
+  default?: unknown;
+}
+
 export interface Case {
+  params?: Readonly<Record<string, Param>>;
   id: string;
   input: Readonly<Record<string, unknown>>;
   desc?: string;
@@ -92,8 +103,29 @@ function parseFacetSpec(value: unknown, path: string): FacetSpec {
   };
 }
 
+function parseParams(value: unknown, path: string): Record<string, Param> {
+  const params = record(value, path);
+  for (const [name, value] of Object.entries(params)) {
+    if (!name) throw new Error(`${path} has an empty param name`);
+    const param = record(value, `${path}.${name}`);
+    if (typeof param.type !== "string" || !param.type) {
+      throw new Error(`${path}.${name}.type must be a non-empty string`);
+    }
+    if ("source" in param && (typeof param.source !== "string" || !param.source)) {
+      throw new Error(`${path}.${name}.source must be a non-empty string`);
+    }
+    for (const key of Object.keys(param)) {
+      if (!["type", "source", "default"].includes(key)) {
+        throw new Error(`${path}.${name}: unknown field '${key}'`);
+      }
+    }
+  }
+  return params as Record<string, Param>;
+}
+
 function parseCase(value: unknown, index: number): Case {
   const raw = record(value, `cases[${index}]`);
+  const params = raw.params === undefined ? {} : parseParams(raw.params, `cases[${index}].params`);
   const judgeRaw = optionalRecord(raw.judge, `cases[${index}].judge`);
   const judge = Object.fromEntries(Object.entries(judgeRaw).map(([face, criteria]) => (
     [face, record(criteria, `cases[${index}].judge.${face}`)]
@@ -102,6 +134,7 @@ function parseCase(value: unknown, index: number): Case {
     ? undefined
     : record(raw.binding, `cases[${index}].binding`);
   return {
+    ...(Object.keys(params).length ? { params } : {}),
     id: typeof raw.id === "string" ? raw.id : "",
     input: optionalRecord(raw.input, `cases[${index}].input`),
     ...(typeof raw.desc === "string" && raw.desc ? { desc: raw.desc } : {}),
@@ -158,6 +191,7 @@ export function loadCaseSet(path: string): CaseSet {
 export function caseToRaw(item: Case): Record<string, unknown> {
   return {
     id: item.id,
+    ...(item.params && Object.keys(item.params).length ? { params: { ...item.params } } : {}),
     input: { ...item.input },
     ...(item.desc ? { desc: item.desc } : {}),
     ...(item.facets && Object.keys(item.facets).length > 0
@@ -258,6 +292,7 @@ export function validateCaseSet(caseSet: CaseSet): void {
 /** Validate standalone identity and judgment metadata; CaseSet validates references and uniqueness. */
 export function validateCase(item: Case): void {
   if (!CASE_ID_PATTERN.test(item.id)) throw new Error(`case with invalid id: '${item.id}'`);
+  if (item.params !== undefined) parseParams(item.params, `case ${item.id}.params`);
   for (const face of Object.keys(item.judge ?? {})) {
     if (!FACE_SET.has(face)) throw new Error(`case ${item.id}: unknown judge face '${face}'`);
   }
@@ -281,6 +316,7 @@ export function caseHash(item: Case): string {
   const payload = canonical({
     id: item.id,
     input: item.input,
+    ...(item.params && Object.keys(item.params).length ? { params: item.params } : {}),
     facets: item.facets ?? {},
     requires: [...(item.requires ?? [])].sort(),
     judge: item.judge ?? {},

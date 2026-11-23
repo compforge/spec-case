@@ -45,7 +45,11 @@ type Binding struct {
 	Spec     string  `yaml:"spec,omitempty" json:"spec,omitempty"`
 }
 
+// Param retains the wire keys so an explicit null default is distinct from omission.
+type Param map[string]any
+
 type Case struct {
+	Params   map[string]Param          `yaml:"params,omitempty" json:"params,omitempty"`
 	ID       string                    `yaml:"id" json:"id"`
 	Input    map[string]any            `yaml:"input,omitempty" json:"input"`
 	Desc     string                    `yaml:"desc,omitempty" json:"desc,omitempty"`
@@ -143,6 +147,14 @@ func Validate(cases CaseSet) error {
 			return fmt.Errorf("duplicate case id: %s", item.ID)
 		}
 		seen[item.ID] = struct{}{}
+		for name, param := range item.Params {
+			if err := param.validate(); err != nil {
+				return fmt.Errorf("case %s: params[%q]: %w", item.ID, name, err)
+			}
+			if name == "" {
+				return fmt.Errorf("case %s: empty param name", item.ID)
+			}
+		}
 		for name, value := range item.Facets {
 			facet, exists := cases.FacetSchema[name]
 			if !exists {
@@ -172,6 +184,24 @@ func Validate(cases CaseSet) error {
 	return nil
 }
 
+func (p Param) validate() error {
+	if typ, ok := p["type"].(string); !ok || typ == "" {
+		return fmt.Errorf("type must be a non-empty string")
+	}
+	for key, value := range p {
+		switch key {
+		case "type", "default":
+		case "source":
+			if source, ok := value.(string); !ok || source == "" {
+				return fmt.Errorf("source must be a non-empty string")
+			}
+		default:
+			return fmt.Errorf("unknown field %q", key)
+		}
+	}
+	return nil
+}
+
 func CaseHash(item Case) (string, error) {
 	requires := slices.Clone(item.Requires)
 	if requires == nil {
@@ -181,10 +211,14 @@ func CaseHash(item Case) (string, error) {
 	var encoded bytes.Buffer
 	encoder := json.NewEncoder(&encoded)
 	encoder.SetEscapeHTML(false)
-	err := encoder.Encode(map[string]any{
+	payload := map[string]any{
 		"id": item.ID, "input": item.Input, "facets": item.Facets,
 		"requires": requires, "judge": item.Judge,
-	})
+	}
+	if len(item.Params) > 0 {
+		payload["params"] = item.Params
+	}
+	err := encoder.Encode(payload)
 	if err != nil {
 		return "", fmt.Errorf("marshal Case %q for hash: %w", item.ID, err)
 	}

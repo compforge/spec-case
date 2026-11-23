@@ -20,12 +20,30 @@ case 是可积累、可共享的 git 资产。一个 case 文件是一个 **Case
 | 字段 | 含义 | 备注 |
 |------|------|------|
 | `id` | 同一 CaseSet 内唯一、不可变的主键 | 格式 `^[a-z][a-z0-9_]*$`；跨运行/跨判定面对齐用 |
-| `input` | 协议无关的激励描述（schemaless dict） | 只承载激励，不含环境/参数 |
+| `params` | 可选的命名参数声明 | 每项必填 `type`，可各自选填 `source` 和 `default` |
+| `input` | 协议无关的激励描述（schemaless dict） | 可直接写值，也可由消费方渲染参数引用 |
 | `desc` | 一行人读描述 | 装饰性，不进 `case_hash` |
 | `facets` | 分类轴（difficulty/type…），词表在 CaseSet 声明 | 报表分组/透视用 |
 | `requires` | 依赖的 source（素材）名 | 素材另行声明，运行时按需 provision |
 | `judge.<face>` | 各判定面判据 | `face ∈ {e2e, eval, perf, trace}`，各自可选；缺某面 = 只观测不判 |
 | **`binding`** | **spec 绑定：`symbol-id` + 可选 `spec_id` + spec 文本** | **★ spec-case 独有**——把这条 case 钉在它断言的代码契约上 |
+
+例如，一个问答 case 可以这样声明参数。示例中的消费方用 `{$param: query}` 引用参数，`stream` 直接取字面值。
+
+```yaml
+id: ask_question
+params:
+  tenant_id: {type: string, source: command.tenant_id}
+  query: {type: string, default: "你好"}
+  bot_id: {type: string}
+input:
+  query: {$param: query}
+  stream: true
+```
+
+参数名在单个 case 内有效。`type` 与 `source` 使用消费方约定的名称。消费方负责查找来源、校验实际值和渲染 input。
+`default` 接受 JSON 字面值，显式的 `false`、`0`、`""` 和 `null` 均会保留。有来源的参数也可以声明默认值。
+非空的参数声明参与 `case_hash`，运行时选取的值由消费方记录。
 
 判定面（**face**，判定视角）：`e2e`（对错）、`eval`（效果）、`perf`（容量）、`trace`（链路归因）。与分类轴（facet）正交。
 

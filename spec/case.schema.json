@@ -46,6 +46,16 @@
       },
       "oneOf": [{ "required": ["uri"] }, { "required": ["content"] }]
     },
+    "param": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string", "minLength": 1, "description": "Value type understood by the consumer." },
+        "source": { "type": "string", "minLength": 1, "description": "Consumer-defined value source." },
+        "default": { "description": "Literal fallback value, preserved as JSON." }
+      }
+    },
     "case": {
       "type": "object",
       "required": ["id"],
@@ -55,6 +65,11 @@
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]*$",
           "description": "Immutable, CaseSet-unique primary key; cross-run/cross-face alignment."
+        },
+        "params": {
+          "type": "object",
+          "propertyNames": { "minLength": 1 },
+          "additionalProperties": { "$ref": "#/definitions/param" }
         },
         "input": { "type": "object", "description": "Protocol-agnostic stimulus (schemaless)." },
         "desc": { "type": "string", "description": "One-line human description; not in case_hash." },
