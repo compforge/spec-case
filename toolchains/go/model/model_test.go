@@ -3,6 +3,7 @@ package model
 import (
 	"encoding/json"
 	"os"
+	"reflect"
 	"testing"
 )
 
@@ -129,3 +130,58 @@ func TestLoadDistinguishesMissingAndExplicitSchemaVersion(t *testing.T) {
 }
 
 func stringPointer(value string) *string { return &value }
+
+func TestParamConformance(t *testing.T) {
+	data, err := os.ReadFile("../../../conformance/case/params.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var fixture struct {
+		Case    json.RawMessage
+		Hash    string
+		Invalid []map[string]Param `json:"invalid_params"`
+	}
+	if err := json.Unmarshal(data, &fixture); err != nil {
+		t.Fatal(err)
+	}
+
+	// Load through the normal YAML reader, including its defaults for omitted case fields.
+	path := t.TempDir() + "/cases.yaml"
+	content := "caseset: params\ncases: [" + string(fixture.Case) + "]\n"
+	if err := os.WriteFile(path, []byte(content), 0600); err != nil {
+		t.Fatal(err)
+	}
+	cs, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := Validate(cs); err != nil {
+		t.Fatal(err)
+	}
+	item := cs.Cases[0]
+	got, err := CaseHash(item)
+	if err != nil || got != fixture.Hash {
+		t.Fatalf("hash = %s, error = %v; want %s", got, err, fixture.Hash)
+	}
+	encoded, err := json.Marshal(item)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var want, actual map[string]any
+	if err := json.Unmarshal(fixture.Case, &want); err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal(encoded, &actual); err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(actual, want) {
+		t.Fatalf("round trip = %v, want %v", actual, want)
+	}
+
+	for _, params := range fixture.Invalid {
+		cs.Cases[0].Params = params
+		if err := Validate(cs); err == nil {
+			t.Errorf("accepted invalid params %v", params)
+		}
+	}
+}

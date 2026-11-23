@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -242,3 +243,16 @@ def test_source_key_uri_addressed():
 def test_facet_empty_values_rejected():
     with pytest.raises(ValueError, match="non-empty"):
         C.from_raw(_raw(facets={"difficulty": {"values": []}}))
+
+
+def test_param_declarations_round_trip_and_hash():
+    fixture = json.loads(CONFORMANCE_CASESET.with_name("params.json").read_text())
+    raw = fixture["case"]
+    cs = C.from_raw({"caseset": "params", "cases": [raw]})
+    C.validate(cs)
+    case = cs.cases[0]
+    assert C.case_to_raw(case) == raw
+    assert C.case_hash(case) == fixture["hash"]
+    for params in fixture["invalid_params"]:
+        with pytest.raises(ValueError, match="param"):
+            C.validate(C.from_raw({"caseset": "params", "cases": [{**raw, "params": params}]}))

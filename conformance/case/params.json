@@ -1,0 +1,88 @@
+{
+  "case": {
+    "id": "ask_question",
+    "params": {
+      "bot_id": {
+        "type": "string"
+      },
+      "tenant_id": {
+        "type": "string",
+        "source": "command.tenant_id"
+      },
+      "query": {
+        "type": "string",
+        "default": "你好"
+      },
+      "stream": {
+        "type": "boolean",
+        "source": "options.stream",
+        "default": false
+      },
+      "offset": {
+        "type": "integer",
+        "default": 0
+      },
+      "cursor": {
+        "type": "string",
+        "default": ""
+      },
+      "metadata": {
+        "type": "object",
+        "default": {
+          "tags": [
+            "public"
+          ]
+        }
+      },
+      "fallback": {
+        "type": "nullable",
+        "default": null
+      }
+    },
+    "input": {
+      "query": {
+        "$param": "query"
+      },
+      "stream": true
+    }
+  },
+  "hash": "0b954fcd",
+  "invalid_params": [
+    {
+      "query": {}
+    },
+    {
+      "query": {
+        "type": false
+      }
+    },
+    {
+      "query": {
+        "type": ""
+      }
+    },
+    {
+      "query": {
+        "type": "string",
+        "source": null
+      }
+    },
+    {
+      "query": {
+        "type": "string",
+        "source": ""
+      }
+    },
+    {
+      "query": {
+        "type": "string",
+        "typo": true
+      }
+    },
+    {
+      "": {
+        "type": "string"
+      }
+    }
+  ]
+}

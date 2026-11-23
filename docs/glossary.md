@@ -22,7 +22,7 @@
 | **run** | 一次执行，产物落 `runs/<scope>/<run-id>/`。 |
 | **scope** | harness 无关的运行单元名（run 目录首段）。 |
 | **check** | run 级断言门（对聚合/切片指标的 pass/fail），与 per-case 判定是不同的判定单元。 |
-| **case_hash** | 对 case 身份字段（id/input/facets/requires/judge）的稳定 hash；含义变才漂。用于检测过期产物。 |
+| **case_hash** | 对 case 身份字段（id/input/非空 params/facets/requires/judge）的稳定 hash；含义变才漂。用于检测过期产物。 |
 | **spec.json** | `specgen` 的生成态产物，按 symbol-id 索引 `{fqn?, specs[]}`。`ccr` 的 `SpecBuilder` 入口。 |
 | **specgen** | 语言相关的静态抽取器：扫代码标记（AST）→ 编译成 case + `spec.json`。按本仓契约实现，不在本仓内。 |
 

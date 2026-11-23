@@ -32,7 +32,7 @@ import json
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Literal
+from typing import Literal, TypedDict
 
 import yaml
 
@@ -81,6 +81,15 @@ class Binding:
     spec_id: str | None = None
 
 
+class _ParamType(TypedDict):
+    type: str
+
+
+class Param(_ParamType, total=False):
+    source: str
+    default: object
+
+
 @dataclass
 class Case:
     """One reusable stimulus + its per-face judgment criteria.
@@ -100,6 +109,7 @@ class Case:
     requires: list[str] = field(default_factory=list)
     judge: dict[str, dict] = field(default_factory=dict)
     binding: Binding | None = None
+    params: dict[str, Param] = field(default_factory=dict)
 
 
 @dataclass
@@ -147,6 +157,7 @@ def case_from_raw(c: dict) -> Case:
         requires=list(c.get("requires") or []),
         judge=dict(c.get("judge") or {}),
         binding=binding,
+        params=c.get("params", {}),
     )
 
 
@@ -156,6 +167,8 @@ def case_to_raw(case: Case) -> dict:
     and ``case_from_raw(case_to_raw(c)) == c``. ``input`` is always emitted (a case with no
     stimulus is meaningless); everything else is dropped when empty."""
     d: dict = {"id": case.id, "input": dict(case.input)}
+    if case.params:
+        d["params"] = {name: dict(param) for name, param in case.params.items()}
     if case.desc:
         d["desc"] = case.desc
     if case.facets:
@@ -221,6 +234,17 @@ def validate(cs: CaseSet) -> None:
 
     seen: set[str] = set()
     for c in cs.cases:
+        if not isinstance(c.params, dict):
+            raise ValueError(f"case {c.id}: params must be an object")
+        for name, param in c.params.items():
+            if not isinstance(name, str) or not name or not isinstance(param, dict):
+                raise ValueError(f"case {c.id}: invalid param {name!r}")
+            if param.keys() - {"type", "source", "default"}:
+                raise ValueError(f"case {c.id}: unknown field in param {name!r}")
+            if not isinstance(param.get("type"), str) or not param["type"]:
+                raise ValueError(f"case {c.id}: params.{name}.type must be a non-empty string")
+            if "source" in param and (not isinstance(param["source"], str) or not param["source"]):
+                raise ValueError(f"case {c.id}: params.{name}.source must be a non-empty string")
         if not c.id:
             raise ValueError("case with empty id")
         if not CASE_ID_PATTERN.fullmatch(c.id):
@@ -257,6 +281,7 @@ def case_hash(case: Case) -> str:
         {
             "id": case.id,
             "input": case.input,
+            **({"params": case.params} if case.params else {}),
             "facets": case.facets,
             "requires": sorted(case.requires),
             "judge": case.judge,

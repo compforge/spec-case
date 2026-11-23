@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -7,6 +8,7 @@ import {
   caseHash,
   caseSetFromRaw,
   caseSetToRaw,
+  caseToRaw,
   loadCaseSet,
   parseCaseSet,
   sourceKey,
@@ -79,4 +81,15 @@ test("case and source hashes are stable and intent-sensitive", () => {
   assert.equal(caseHash(item), caseHash({ ...item, desc: "cosmetic" }));
   assert.notEqual(caseHash(item), caseHash({ ...item, input: { query: "changed" } }));
   assert.equal(sourceKey(parsed.sources![0]!), sourceKey(parsed.sources![0]!));
+});
+
+test("parameter declarations survive serialization and contribute to the shared hash", () => {
+  const fixture = JSON.parse(readFileSync(new URL("../../../../conformance/case/params.json", import.meta.url), "utf8"));
+  const parsed = caseSetFromRaw({ caseset: "params", cases: [fixture.case] });
+  validateCaseSet(parsed);
+  assert.deepEqual(caseToRaw(parsed.cases[0]!), fixture.case);
+  assert.equal(caseHash(parsed.cases[0]!), fixture.hash);
+  for (const params of fixture.invalid_params) {
+    assert.throws(() => validateCaseSet({ ...parsed, cases: [{ ...parsed.cases[0]!, params }] }), /param/u);
+  }
 });
